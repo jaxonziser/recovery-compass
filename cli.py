@@ -1,62 +1,98 @@
-"""Temporary command-line input flow for Recovery Compass.
+"""Command-line input flow for Recovery Compass v0.1.
 
-Week 3 Wednesday scope:
+Current scope:
 - collect one candidate daily record,
-- display the collected values,
-- do not validate or save data yet.
+- validate all entered values,
+- display errors or the accepted normalized record,
+- do not save data yet.
 """
+
+from src.validation import (
+    FIELD_LABELS,
+    normalize_record,
+    validate_record,
+)
 
 
 def collect_candidate_record() -> dict[str, str]:
     """Prompt the user for one unvalidated daily record."""
-
     print("Recovery Compass - Daily Entry")
     print("--------------------------------")
     print("Required fields are marked with *.")
     print()
 
     record = {
-        "date": input("Date* (YYYY-MM-DD): ").strip(),
+        "date": input(
+            "Date* (YYYY-MM-DD): "
+        ).strip(),
         "workout_type": input(
-            "Workout type* "
+            "Workout Type* "
             "(Rest, Strength, Cardio, Sport, Mobility, Other): "
         ).strip(),
         "duration_minutes": input(
-            "Workout duration* in minutes (0-300): "
+            "Workout Duration* "
+            "(whole number of minutes, 0-300): "
         ).strip(),
         "perceived_exertion": input(
-            "Perceived exertion* (0-10): "
+            "Perceived Exertion* "
+            "(whole number, 0=no effort and 10=maximum effort): "
         ).strip(),
-        "sleep_hours": input("Sleep hours* (0-16): ").strip(),
+        "sleep_hours": input(
+            "Sleep Hours* "
+            "(number, 0-16; decimals allowed): "
+        ).strip(),
         "mood_rating": input(
-            "Mood rating (1-5, optional; press Enter to skip): "
+            "Mood Rating "
+            "(optional whole number, 1-5; press Enter to skip): "
         ).strip(),
-        "study_hours": input("Study hours* (0-16): ").strip(),
+        "study_hours": input(
+            "Study Hours* "
+            "(number, 0-16; decimals allowed): "
+        ).strip(),
     }
 
     return record
 
 
-def display_candidate_record(record: dict[str, str]) -> None:
-    """Display the candidate record without validating or saving it."""
+def display_errors(errors: list[str]) -> None:
+    """Display every validation error found in a candidate record."""
+    print()
+    print("Record Not Accepted")
+    print("-------------------")
+
+    for error in errors:
+        print(f"- {error}")
 
     print()
-    print("Candidate Record")
-    print("----------------")
+    print("Please correct the listed fields and try again.")
+
+
+def display_accepted_record(record: dict[str, object]) -> None:
+    """Display one valid and normalized record."""
+    print()
+    print("Accepted Record")
+    print("---------------")
 
     for field, value in record.items():
-        displayed_value = value if value else "(blank)"
-        print(f"{field}: {displayed_value}")
+        label = FIELD_LABELS.get(field, field)
+        displayed_value = "(not provided)" if value is None else value
+        print(f"{label}: {displayed_value}")
 
     print()
-    print("This record has not been validated or saved.")
+    print("This record passed validation but has not been saved.")
 
 
 def main() -> None:
-    """Run the temporary Recovery Compass input flow."""
-
+    """Collect, validate, normalize, and display one daily record."""
     candidate_record = collect_candidate_record()
-    display_candidate_record(candidate_record)
+    errors = validate_record(candidate_record)
+
+    if errors:
+        display_errors(errors)
+        return
+
+    normalized_record = normalize_record(candidate_record)
+    display_accepted_record(normalized_record)
 
 
 if __name__ == "__main__":
