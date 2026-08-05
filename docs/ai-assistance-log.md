@@ -90,3 +90,34 @@ I am not claiming that I independently designed or wrote all of the code.
 - Duplicate dates are not yet checked.
 - CSV import and export are not yet implemented.
 - The graphical interface is not yet connected.
+
+## 2026-08-05 — Local CSV Storage, Block A
+
+### AI Assistance Used
+
+AI assistance was used to:
+
+- propose the local CSV storage contract
+- explain working-file and export-file responsibilities
+- design the `src/storage.py` architecture
+- write most of the unfamiliar storage implementation
+- create the synthetic manual round-trip test
+- explain defensive validation, missing-file behavior, duplicate detection,
+  and type reconstruction
+- help document the architecture, decisions, test result, and limitations
+
+### My Contribution
+
+I:
+
+- approved or refined the storage behavior before implementation
+- identified through approximately five user interviews that users needed an
+  explanation of CSV files
+- added CSV education and post-download guidance as a product requirement
+- reviewed the major functions
+- answered understanding questions and corrected my understanding
+- created and ran the synthetic round-trip test
+- verified the actual loaded values and types
+- accepted the successful round-trip result
+
+I am not claiming that I independently designed or wrote the storage module.

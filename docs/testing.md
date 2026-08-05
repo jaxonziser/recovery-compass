@@ -33,3 +33,24 @@ accepted.
 - CSV import and export are not yet implemented.
 - Testing was performed manually rather than through automated tests.
 - The graphical Streamlit interface has not yet been connected.
+
+## 2026-08-05 — Local CSV Storage Round-Trip
+
+### Test Objective
+
+Verify that one valid normalized Recovery Compass record can be saved to a
+local CSV file and then reloaded without changing its fields, values, or
+Python data types.
+
+### Synthetic Test Record
+
+```python
+{
+    "date": "2026-08-05",
+    "workout_type": "Strength",
+    "duration_minutes": 45,
+    "perceived_exertion": 7,
+    "sleep_hours": 7.5,
+    "mood_rating": None,
+    "study_hours": 2.5,
+}

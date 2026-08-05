@@ -7,3 +7,13 @@ __pycache__/
 data/private_*.csv
 *.log
 .DS_Store
+data/recovery_compass.csv
+data/private_*.csv
+
+# Recovery Compass private local data
+data/recovery_compass.csv
+data/private_*.csv
+
+# Python-generated files
+__pycache__/
+*.py[cod]
