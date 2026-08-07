@@ -597,3 +597,395 @@ During Storage Block B:
 - update the engineering journal
 - update the AI-assistance log
 - commit and push the coherent storage unit
+
+---
+
+## 2026-08-07 — Local CSV Storage, Block B
+
+### Objective
+
+Complete the Recovery Compass v0.1 local-storage reliability layer by defining
+and testing failure behavior, duplicate protection, CSV export, and
+all-or-nothing CSV import.
+
+### Starting State
+
+Storage Block A had already established that:
+
+- one normalized synthetic record could be saved to CSV
+- the record could be loaded again accurately
+- the frozen seven-column schema was preserved
+- blank optional Mood Rating values could round-trip as `None`
+- the private working CSV was separated conceptually from user-controlled
+  exports
+
+The original round-trip test was rerun before the expanded acceptance test and
+continued to pass.
+
+### Final Storage Behavior
+
+#### Missing File
+
+A missing working CSV represents zero saved records.
+
+`load_records()` returns:
+
+```python
+[]
+```
+
+This is treated as a normal first-use condition rather than an error.
+
+#### Empty File
+
+A zero-byte CSV also represents zero stored records and loads as:
+
+```python
+[]
+```
+
+The next valid save can create the approved header and first record.
+
+#### Wrong Headers
+
+CSV headers must exactly match the frozen schema:
+
+```text
+date
+workout_type
+duration_minutes
+perceived_exertion
+sleep_hours
+mood_rating
+study_hours
+```
+
+Recovery Compass does not guess what renamed, missing, extra, or rearranged
+columns mean.
+
+A file with incorrect headers is rejected.
+
+#### Malformed Rows
+
+Every row is validated before the file is accepted.
+
+If one row contains invalid information, such as text where a numerical value
+is required, the file is rejected rather than partially accepted.
+
+This follows an all-or-nothing approach: a file either passes its required
+checks or does not alter the application's working dataset.
+
+#### Duplicate Save
+
+Recovery Compass continues to allow only one record per date.
+
+`save_record()` loads existing records before appending so that it can:
+
+1. verify that the existing CSV can be read safely;
+2. determine whether the new date already exists.
+
+If the date exists, `DuplicateDateError` is raised.
+
+The existing record is not silently overwritten and a second record is not
+appended.
+
+#### Duplicate Dates Inside a CSV
+
+Duplicate protection was expanded beyond `save_record()`.
+
+`load_records()` now tracks dates it has already encountered using a set.
+
+This is necessary because a CSV may have been:
+
+- manually edited
+- imported
+- copied from another location
+- created without using Recovery Compass's normal save function
+
+Therefore, a CSV containing two records for the same date is itself considered
+invalid.
+
+### `seen_dates`
+
+During loading, the application keeps a set of dates already encountered.
+
+Conceptually:
+
+```python
+seen_dates = set()
+```
+
+For every valid row:
+
+- if its date has not been seen, the date is added to the set;
+- if its date is already present, the file is rejected.
+
+This ensures that the one-record-per-date rule applies regardless of where the
+CSV came from.
+
+### Safe Rewrite Strategy
+
+The new `_write_records()` helper is used when Recovery Compass needs to create
+a complete replacement CSV, including after a successful import.
+
+Rather than writing directly over the current destination, it first creates a
+temporary file such as:
+
+```text
+.working.csv.tmp
+```
+
+The complete replacement dataset is written there first.
+
+Only after the write succeeds does the temporary file replace the destination.
+
+The purpose is not primarily to save computer memory. It is to reduce the risk
+of damaging the real working CSV with a partial write.
+
+The flow is:
+
+```text
+existing working CSV remains intact
+        ↓
+write complete proposed replacement to temporary file
+        ↓
+write succeeds?
+    No ──→ original remains intact
+        ↓ Yes
+replace destination with completed file
+```
+
+### Export Behavior
+
+`export_records()` creates a separate validated CSV copy.
+
+The export:
+
+- contains the same approved schema
+- contains the same stored records
+- does not move or rename the private working CSV
+- does not modify the private working CSV
+- cannot silently overwrite an already existing destination file
+- is rejected when there are no records to export
+
+The important distinction is control:
+
+- the working CSV is Recovery Compass's application-controlled source of truth;
+- the export is a user-controlled copy.
+
+Moving the working CSV itself would remove the file the application depends on,
+so exporting must create a separate copy instead.
+
+### Import Behavior
+
+`import_records()` allows Recovery Compass-generated CSV data to be restored or
+transferred back into the application.
+
+Potential uses include:
+
+- restoring a previously downloaded copy
+- moving records between environments or devices
+- recovering records after local working data is lost
+- maintaining user-controlled backups
+
+The import process is intentionally all-or-nothing.
+
+Conceptually:
+
+```text
+select incoming CSV
+        ↓
+validate headers
+        ↓
+validate every row
+        ↓
+check duplicate dates inside incoming CSV
+        ↓
+compare incoming dates with existing working records
+        ↓
+any error or conflict?
+    Yes ──→ import nothing
+        ↓ No
+write complete combined dataset
+```
+
+If a single imported date conflicts with an existing date, the entire import is
+rejected.
+
+Recovery Compass does not import only the nonconflicting subset.
+
+This prevents users from being left with a partially imported dataset whose
+contents may be difficult to understand or reconstruct.
+
+### CSV Interface Terminology
+
+A usability discussion refined the terminology planned for the future
+graphical interface.
+
+The preferred labels are:
+
+```text
+Download Data (.CSV)
+Import Data (.CSV)
+```
+
+rather than relying only on technical terms such as `Export CSV` or describing
+every download only as a backup.
+
+The planned helper text should explain that the downloaded CSV:
+
+- contains the user's Recovery Compass records in spreadsheet rows and columns
+- can be opened in Excel, Google Sheets, Apple Numbers, or similar software
+- can serve as a backup
+- can later be imported to restore or transfer records
+- should retain the original Recovery Compass column names if it will be
+  imported again
+
+The import interface should explain that it is primarily intended for restoring
+or transferring Recovery Compass data.
+
+This requirement was prompted by user interviews in which approximately five
+participants did not know what a CSV file was.
+
+### Download Location Decision
+
+The eventual Streamlit application should not attempt to save a CSV directly
+beside the application on the user's device.
+
+In a deployed web application, the Recovery Compass application directory may
+exist on the server rather than on the user's computer.
+
+The intended user flow is therefore:
+
+```text
+Recovery Compass
+        ↓
+Download Data (.CSV)
+        ↓
+browser handles the download
+        ↓
+normal browser Downloads location or user-selected location
+```
+
+The backend storage module remains responsible for producing valid CSV data.
+The later Streamlit interface will be responsible for presenting that data
+through the browser's download mechanism.
+
+### Acceptance Testing
+
+A nine-check synthetic acceptance matrix was run.
+
+The checks were:
+
+1. missing file
+2. empty file
+3. valid save and reload
+4. wrong header
+5. malformed row
+6. duplicate save
+7. duplicate dates already inside a CSV
+8. separate matching export
+9. successful import followed by a conflicting import
+
+All nine tests passed.
+
+The conflicting import test also verified that the working dataset remained
+unchanged after the rejected import.
+
+Detailed output is recorded in `docs/testing.md`.
+
+### What I Learned
+
+I learned that duplicate protection cannot exist only inside `save_record()`
+because CSV files can enter or be changed outside the normal save flow.
+`load_records()` therefore needs to enforce the one-record-per-date rule
+independently.
+
+I learned that temporary-file replacement protects the existing working data
+from partial writes. Recovery Compass writes the proposed complete replacement
+first and changes the real destination only after that write succeeds.
+
+I learned why import uses an all-or-nothing rule. Even when most rows are
+valid, partially accepting a file could leave the user unsure which records
+were actually imported.
+
+I also clarified the distinction between export and moving the working file.
+An export creates a separate user-controlled copy while the application keeps
+its own working source of truth in place.
+
+Finally, I learned that an import containing even one date that conflicts with
+existing data must currently be rejected completely rather than partially
+merged.
+
+### AI Collaboration
+
+AI assistance was used extensively for the Block B architecture and unfamiliar
+implementation.
+
+AI assistance included:
+
+- proposing the remaining storage behavior
+- explaining import and export use cases
+- proposing all-or-nothing import behavior
+- adding duplicate-date detection during CSV loading
+- designing the temporary-file rewrite strategy
+- writing much of the updated storage implementation
+- writing the expanded acceptance test
+- explaining the purpose of the new functions and failure paths
+- helping refine future CSV interface terminology
+- helping document decisions, test evidence, and limitations
+
+My role was to:
+
+- approve or modify each storage behavior before implementation
+- question the purpose of CSV import
+- decide to keep import after understanding its restore and transfer use cases
+- identify the need to explain CSV files to users based on interviews
+- refine the future download/import terminology
+- decide that browser-controlled downloads are more appropriate for the
+  eventual graphical interface
+- personally run the original regression test
+- personally run the nine-check acceptance matrix
+- inspect the actual pass/fail outputs
+- answer the storage understanding questions
+- correct and refine my understanding after explanation
+- accept the storage behavior based on the test evidence
+
+### Current Limitations
+
+- The CLI is not yet connected to the storage functions.
+- The Streamlit graphical interface is not yet connected to storage.
+- Browser upload/download controls are not yet implemented.
+- The current backend export helper uses a supplied filesystem destination;
+  the later Streamlit layer must adapt export to browser downloading.
+- Editing or replacing an existing date is not implemented.
+- Duplicate records are rejected rather than merged.
+- Partial imports are intentionally unsupported.
+- Testing currently uses manual scripts rather than a full automated pytest
+  suite.
+- Analytics, charts, and feedback remain separate future work.
+
+### Outcome
+
+The Week 4 storage reliability layer passed all nine defined acceptance checks.
+
+Recovery Compass can now:
+
+- safely represent missing or empty local storage
+- save and reload valid records
+- reject incorrect headers
+- reject invalid rows
+- reject duplicate dates
+- detect duplicate dates already present inside a CSV
+- create a separate export copy
+- import valid nonconflicting records
+- reject a conflicting import without changing working data
+
+The storage module is accepted as the current v0.1 foundation.
+
+### Next Technical Action
+
+Do not add Streamlit, analytics, or visual polish during this block.
+
+The next scheduled development phase should build on the accepted storage
+module rather than redesigning it.

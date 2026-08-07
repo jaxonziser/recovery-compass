@@ -54,3 +54,247 @@ Python data types.
     "mood_rating": None,
     "study_hours": 2.5,
 }
+
+## 2026-08-07 — Local CSV Storage Acceptance Matrix
+
+### Test Objective
+
+Verify that Recovery Compass v0.1 local storage behaves safely during normal
+use, file errors, duplicate-date conflicts, export, and import.
+
+The purpose of this acceptance pass was to confirm that invalid or conflicting
+CSV data does not crash the program, silently corrupt stored records, or
+partially alter the working dataset.
+
+### Test Environment
+
+The acceptance script used Python's `TemporaryDirectory()` so that all CSV
+files contained only synthetic data and were automatically removed after the
+test run.
+
+No personal Recovery Compass data was used.
+
+### Regression Check
+
+Before the expanded acceptance matrix, the original Week 4 round-trip test was
+run again.
+
+The synthetic record:
+
+```python
+{
+    "date": "2026-08-05",
+    "workout_type": "Strength",
+    "duration_minutes": 45,
+    "perceived_exertion": 7,
+    "sleep_hours": 7.5,
+    "mood_rating": None,
+    "study_hours": 2.5,
+}
+```
+
+was saved and reloaded with the same fields, values, and Python data types.
+
+**Result: Pass**
+
+### Acceptance Matrix
+
+#### Test 1 — Missing File
+
+Expected behavior:
+
+- loading a path that does not exist returns `[]`
+- no crash occurs
+
+Actual result:
+
+```text
+PASS 1 - Missing file returns an empty list.
+```
+
+**Status: Pass**
+
+#### Test 2 — Empty File
+
+Expected behavior:
+
+- a zero-byte CSV represents zero stored records
+- loading returns `[]`
+- no crash occurs
+
+Actual result:
+
+```text
+PASS 2 - Empty file returns an empty list.
+```
+
+**Status: Pass**
+
+#### Test 3 — Valid Save and Reload
+
+Expected behavior:
+
+- one valid normalized record can be saved
+- the record can be reloaded
+- all values and documented Python types remain unchanged
+
+Actual result:
+
+```text
+PASS 3 - Valid record survives save and reload.
+```
+
+**Status: Pass**
+
+#### Test 4 — Wrong Headers
+
+The test CSV deliberately replaced the approved `sleep_hours` header with an
+incorrect header.
+
+Expected behavior:
+
+- the entire CSV is rejected
+- the application does not guess or silently rename columns
+
+Actual result:
+
+```text
+PASS 4 - Wrong headers are rejected.
+```
+
+**Status: Pass**
+
+#### Test 5 — Malformed Row
+
+The test CSV deliberately used the text `banana` for Workout Duration.
+
+Expected behavior:
+
+- the invalid row causes the file to be rejected
+- no partial load is accepted
+
+Actual result:
+
+```text
+PASS 5 - Malformed row is rejected.
+```
+
+**Status: Pass**
+
+#### Test 6 — Duplicate Save
+
+The test attempted to save a second record using a date already present in the
+working CSV.
+
+Expected behavior:
+
+- `DuplicateDateError` is raised
+- the existing record is not overwritten
+- a second record for the same date is not appended
+
+Actual result:
+
+```text
+PASS 6 - Duplicate save is rejected.
+```
+
+**Status: Pass**
+
+#### Test 7 — Duplicate Dates Already Inside a CSV
+
+A synthetic CSV was manually constructed with two individually valid records
+using the same date.
+
+Expected behavior:
+
+- `load_records()` detects the duplicate even though the records did not enter
+  through `save_record()`
+- the file is rejected
+
+Actual result:
+
+```text
+PASS 7 - Duplicate dates inside a CSV are rejected.
+```
+
+**Status: Pass**
+
+#### Test 8 — Export Copy
+
+Expected behavior:
+
+- a separate CSV export is created
+- the exported records match the working records
+- the working CSV remains unchanged
+
+Actual result:
+
+```text
+PASS 8 - Export creates a separate matching copy.
+```
+
+**Status: Pass**
+
+#### Test 9 — Import and Conflict Protection
+
+A valid synthetic CSV containing a new date was imported.
+
+Expected behavior:
+
+- the new record is added
+- the function reports one imported record
+
+The same CSV was then imported again, creating a duplicate-date conflict.
+
+Expected behavior:
+
+- the conflicting import is rejected
+- no records from that conflicting import are added
+- the working data remains exactly as it was before the failed import
+
+Actual result:
+
+```text
+PASS 9 - Import works and conflicting import changes nothing.
+```
+
+**Status: Pass**
+
+### Final Test Output
+
+```text
+PASS 1 - Missing file returns an empty list.
+PASS 2 - Empty file returns an empty list.
+PASS 3 - Valid record survives save and reload.
+PASS 4 - Wrong headers are rejected.
+PASS 5 - Malformed row is rejected.
+PASS 6 - Duplicate save is rejected.
+PASS 7 - Duplicate dates inside a CSV are rejected.
+PASS 8 - Export creates a separate matching copy.
+PASS 9 - Import works and conflicting import changes nothing.
+
+All Week 4 storage acceptance tests passed.
+```
+
+### Acceptance Result
+
+**9 of 9 storage acceptance checks passed.**
+
+The original Week 4 round-trip regression test also continued to pass after
+the storage module was expanded.
+
+### Current Limitations
+
+- Testing is still performed through manual test scripts rather than a full
+  automated pytest suite.
+- The command-line interface is not yet connected to the completed storage
+  functions.
+- The Streamlit graphical interface is not yet connected to storage.
+- Browser-based CSV downloading and uploading have not yet been implemented.
+- The current backend export function writes a separate CSV file to a supplied
+  filesystem path. The later Streamlit interface should adapt this behavior to
+  the browser's normal download workflow rather than attempting to choose a
+  folder on the user's device.
+- Editing or replacing an existing daily record is not implemented.
+- Duplicate dates are rejected rather than merged or overwritten.
+- Import is intentionally all-or-nothing; partial imports are not supported.

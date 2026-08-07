@@ -121,3 +121,115 @@ I:
 - accepted the successful round-trip result
 
 I am not claiming that I independently designed or wrote the storage module.
+
+## 2026-08-07 — Local CSV Storage, Block B
+
+### AI Assistance Used
+
+AI assistance was used to:
+
+- propose final behavior for missing and empty files
+- define strict wrong-header and malformed-row handling
+- preserve the one-record-per-date policy
+- add duplicate-date detection to CSV loading
+- explain the purpose of importing previously exported Recovery Compass data
+- design all-or-nothing import behavior
+- distinguish the application-controlled working CSV from a user-controlled
+  export
+- design a temporary-file rewrite strategy
+- write much of the expanded `src/storage.py` implementation
+- write `tests/manual_storage_acceptance.py`
+- explain `seen_dates`, temporary replacement, import atomicity, and export
+  behavior
+- help refine planned interface wording for CSV download and import
+- help document the actual test results and current limitations
+
+### Product Decisions I Made
+
+I approved the following behavior:
+
+- missing and empty files represent zero records
+- wrong headers reject the file
+- malformed rows reject the file
+- duplicate dates are rejected
+- duplicate dates already inside a CSV are also rejected
+- export creates a separate copy and does not move the working CSV
+- imports are all-or-nothing
+- an import conflicting with an existing date changes nothing
+- CSV import remains in the product because it provides restore and transfer
+  functionality
+- the future interface should explain what a CSV is and why users might import
+  one
+- the preferred future labels are `Download Data (.CSV)` and
+  `Import Data (.CSV)`
+- browser download behavior should be used in the eventual Streamlit
+  interface rather than assuming that the application folder exists on the
+  user's device
+
+### My Contribution
+
+I:
+
+- reviewed and approved the proposed behavior before implementation
+- questioned why a Recovery Compass CSV would ever be imported back into the
+  application
+- decided to retain import after understanding the backup, restore, and
+  transfer use cases
+- contributed interview evidence that approximately five users did not know
+  what CSV files were
+- required additional CSV explanation in the eventual interface
+- questioned how exported files should be delivered to the user's computer
+- participated in the design decision to use the browser's normal download
+  workflow later
+- personally ran the syntax check
+- personally reran the original round-trip regression test
+- personally ran the nine-check storage acceptance matrix
+- verified that all nine checks passed
+- answered the understanding questions in my own words
+- corrected my understanding where necessary
+- accepted the implementation based on actual test evidence
+
+### Understanding Demonstrated
+
+I can now explain that:
+
+- `save_record()` alone cannot prevent every duplicate because CSV files may
+  enter the system without going through that function
+- `load_records()` therefore checks for duplicate dates itself
+- temporary-file replacement helps protect the real working CSV from a failed
+  partial rewrite
+- imports are all-or-nothing so users are not left with an unclear partial
+  dataset
+- export creates a separate copy while preserving the application's source of
+  truth
+- one conflicting imported date currently causes the entire import to be
+  rejected
+
+### Verification
+
+The original synthetic round-trip test continued to pass after the storage
+changes.
+
+The expanded acceptance test then passed all nine checks:
+
+1. missing file
+2. empty file
+3. valid round trip
+4. wrong headers
+5. malformed row
+6. duplicate save
+7. duplicate dates inside a CSV
+8. export copy
+9. valid import and conflicting-import protection
+
+No real personal data was used in the tests.
+
+### Current Limitation of AI Assistance
+
+I am not claiming that I independently designed or wrote the storage
+implementation.
+
+The architecture and much of the unfamiliar code were AI-assisted. My work
+focused on product decisions, questioning design choices, understanding the
+major logic, personally executing tests, evaluating the results, and
+accepting or rejecting the feature.
