@@ -233,3 +233,28 @@ The architecture and much of the unfamiliar code were AI-assisted. My work
 focused on product decisions, questioning design choices, understanding the
 major logic, personally executing tests, evaluating the results, and
 accepting or rejecting the feature.
+
+## 2026-08-12 - Analytics A
+
+AI role:
+- Helped define the analytics architecture after the metric behavior was
+  approved.
+- Wrote most of the initial unfamiliar `src/analytics.py` implementation.
+- Explained the major functions, data flow, date-window logic, missing-data
+  behavior, and comparison gate.
+- Proposed the synthetic verification dataset and manual acceptance checks.
+
+Student role:
+- Approved the metric contract and architecture before implementation.
+- Explained the major analytics behavior and functions in own words.
+- Independently calculated representative expected metric values.
+- Identified and corrected the distinction between workout-only exertion and
+  exertion averaged across all recorded days.
+- Personally ran the manual analytics tests.
+- Verified current-period, previous-period, comparison, and insufficient-data
+  behavior.
+- Accepted the implementation after the tests matched independently calculated
+  results.
+
+No LLM-generated interpretation, causal inference, medical advice, prediction,
+or recommendation was added to the product.

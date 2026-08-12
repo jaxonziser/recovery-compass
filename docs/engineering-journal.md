@@ -989,3 +989,41 @@ Do not add Streamlit, analytics, or visual polish during this block.
 
 The next scheduled development phase should build on the accepted storage
 module rather than redesigning it.
+
+## 2026-08-12 - Deterministic Analytics Core
+
+Created `src/analytics.py` as a pure calculation layer between stored records
+and future feedback/UI features.
+
+Architecture decision:
+
+`storage.py` owns persistence and loading. `analytics.py` receives already
+normalized records and does not read or write CSV files itself.
+
+The first analytics implementation calculates:
+
+- total record count,
+- seven-day coverage,
+- workout frequency,
+- total training duration,
+- average sleep,
+- average study time,
+- average mood using only recorded mood values,
+- mood-entry count,
+- average perceived exertion on workout days,
+- previous seven-day metrics,
+- absolute current-minus-previous differences when both periods are complete.
+
+The period end date is supplied explicitly so calendar-window behavior is
+deterministic and reproducible in testing.
+
+Formal week-to-week comparison requires 7/7 records in both periods. Incomplete
+periods may still produce factual current-period metrics, but they do not
+produce a formal comparison.
+
+Unavailable averages use `None` rather than a fabricated numerical value.
+
+The analytics layer makes no causal, medical, predictive, or recommendation
+claims.
+
+Chart-data preparation and UI integration remain out of scope for this block.

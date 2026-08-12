@@ -298,3 +298,62 @@ the storage module was expanded.
 - Editing or replacing an existing daily record is not implemented.
 - Duplicate dates are rejected rather than merged or overwritten.
 - Import is intentionally all-or-nothing; partial imports are not supported.
+
+## Week 5 Analytics A - August 12, 2026
+
+Implemented and manually verified the first deterministic analytics core in
+`src/analytics.py`.
+
+### Metric behavior tested
+
+The analytics core uses consecutive seven-calendar-day periods rather than the
+most recent seven records.
+
+For a period ending 2026-08-12:
+
+- Current period: 2026-08-06 through 2026-08-12
+- Previous period: 2026-07-30 through 2026-08-05
+
+A 14-record synthetic dataset was independently checked against expected
+values.
+
+Current-period verified results:
+
+- Days recorded: 7
+- Workout days: 5
+- Total training minutes: 200
+- Average sleep: 7.785714285714286 hours
+- Average study: 2.4285714285714284 hours
+- Average mood: 4.4
+- Mood entries: 5
+- Average training exertion: 6.6
+
+Previous-period verified results:
+
+- Days recorded: 7
+- Workout days: 5
+- Total training minutes: 205
+- Average sleep: 7.357142857142857 hours
+- Average study: 2.5 hours
+- Average mood: 3.3333333333333335
+- Mood entries: 6
+- Average training exertion: 6.4
+
+Verified comparison behavior:
+
+- Comparison is available only when both seven-day periods contain 7/7 records.
+- Differences are calculated as current period minus previous period.
+- With a complete current period but no previous-period records,
+  `comparison_available` is False and `differences` is None.
+- Missing mood values are excluded rather than treated as zero.
+- Rest days do not count as workout days and do not enter average training
+  exertion.
+
+Manual test command:
+
+`python -m tests.manual_analytics_check`
+
+Result:
+
+PASS - Current period, previous period, and comparison all match the
+independently calculated values.
