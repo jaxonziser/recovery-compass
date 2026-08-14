@@ -1027,3 +1027,33 @@ The analytics layer makes no causal, medical, predictive, or recommendation
 claims.
 
 Chart-data preparation and UI integration remain out of scope for this block.
+
+## 2026-08-14 - Analytics B Acceptance and Sparse-Data Rules
+
+Completed the Week 5 analytics acceptance pass without changing the approved
+metric contract.
+
+Regression testing confirmed the Wednesday analytics implementation remains
+stable.
+
+Final sparse-data decision:
+
+Current-period metrics may be calculated from incomplete coverage when they
+are based only on values the user actually recorded. Coverage must remain
+explicit so the application does not imply that missing days were observed.
+
+Formal current-versus-previous comparison remains stricter. Both seven-day
+periods must contain 7/7 records before comparison differences are produced.
+
+This prevents a partial period and a complete period from being presented as
+equivalent full-week samples.
+
+Empty-data behavior also distinguishes factual zeros from unavailable values:
+
+- counts and accumulated totals may legitimately equal 0
+- averages with no observations return `None`
+
+No additional analytics metrics, Streamlit work, model interpretation, causal
+claims, or visual work were added during this block.
+
+The existing `analytics.py` implementation required no defect repair.

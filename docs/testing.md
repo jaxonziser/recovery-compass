@@ -357,3 +357,78 @@ Result:
 
 PASS - Current period, previous period, and comparison all match the
 independently calculated values.
+
+## Week 5 Analytics B - August 14, 2026
+
+Friday regression and edge-case testing confirmed the deterministic analytics
+core remains stable.
+
+Command used:
+
+`python -m tests.manual_analytics_check`
+
+The manual acceptance script now verifies four scenarios.
+
+### 1. Complete current and previous periods
+
+A full 14-record synthetic dataset correctly produced:
+
+- 7/7 current-period coverage
+- 7/7 previous-period coverage
+- workout frequency
+- total training duration
+- sleep, study, and mood averages
+- mood-entry count
+- workout-only average exertion
+- current-minus-previous differences
+- `comparison_available = True`
+
+The calculated values continued to match the independently hand-verified
+expected values from Analytics A.
+
+### 2. Complete current period with no previous-period data
+
+With exactly seven current-period records and no records in the previous
+period:
+
+- current-period metrics remain available
+- current coverage is 7/7
+- previous coverage is 0/7
+- `comparison_available = False`
+- `differences = None`
+
+### 3. Sparse current-period data
+
+With only three current-period records:
+
+- `days_recorded = 3`
+- workout days = 2
+- total training minutes = 75
+- available sleep, study, mood, and exertion metrics are still calculated
+  from the recorded observations
+- missing days are not treated as zero
+- formal week-to-week comparison remains unavailable
+
+This confirms that Recovery Compass may show truthful current-period facts
+with incomplete coverage while refusing to represent a partial period as a
+complete comparison period.
+
+### 4. Empty dataset
+
+With no records:
+
+- record count = 0
+- workout days = 0
+- training minutes = 0
+- unavailable averages return `None`
+- mood entries = 0
+- `comparison_available = False`
+- `differences = None`
+
+Zero is used for factual counts and totals. `None` is used when no numerical
+average exists.
+
+Final result:
+
+PASS - Full periods, one-period-only data, sparse data, empty data, and
+comparison behavior all match the expected values.

@@ -136,7 +136,12 @@ RECORDS = [
 
 
 def main() -> None:
-    """Run the hand-verified Week 5 analytics check."""
+    """Run the hand-verified Week 5 analytics acceptance checks."""
+
+    # =========================================================
+    # Full 14-day dataset
+    # =========================================================
+
     metrics = calculate_metrics(
         RECORDS,
         "2026-08-12",
@@ -258,23 +263,109 @@ def main() -> None:
         (33 / 5) - (32 / 5),
     )
 
-        # ---------------------------------------------------------
-    # Insufficient previous-period data
-    # ---------------------------------------------------------
+    # =========================================================
+    # Complete current period but no previous-period data
+    # =========================================================
 
     current_only_metrics = calculate_metrics(
         RECORDS[7:],
         "2026-08-12",
     )
 
-    assert current_only_metrics["current_period"]["days_recorded"] == 7
-    assert current_only_metrics["previous_period"]["days_recorded"] == 0
+    current_only_current = current_only_metrics["current_period"]
+    current_only_previous = current_only_metrics["previous_period"]
+
+    assert current_only_metrics["total_records"] == 7
+
+    assert current_only_current["days_recorded"] == 7
+    assert current_only_previous["days_recorded"] == 0
+
     assert current_only_metrics["comparison_available"] is False
     assert current_only_metrics["differences"] is None
 
+    # =========================================================
+    # Empty dataset
+    # =========================================================
+
+    empty_metrics = calculate_metrics(
+        [],
+        "2026-08-12",
+    )
+
+    empty_current = empty_metrics["current_period"]
+    empty_previous = empty_metrics["previous_period"]
+
+    assert empty_metrics["total_records"] == 0
+
+    assert empty_current["start_date"] == "2026-08-06"
+    assert empty_current["end_date"] == "2026-08-12"
+
+    assert empty_current["days_recorded"] == 0
+    assert empty_current["workout_days"] == 0
+    assert empty_current["total_training_minutes"] == 0
+
+    assert empty_current["average_sleep_hours"] is None
+    assert empty_current["average_study_hours"] is None
+    assert empty_current["average_mood_rating"] is None
+    assert empty_current["mood_entries"] == 0
+    assert empty_current["average_training_exertion"] is None
+
+    assert empty_previous["days_recorded"] == 0
+
+    assert empty_metrics["comparison_available"] is False
+    assert empty_metrics["differences"] is None
+
+    # =========================================================
+    # Sparse current period: only 3 of 7 days recorded
+    # =========================================================
+
+    sparse_metrics = calculate_metrics(
+        RECORDS[7:10],
+        "2026-08-12",
+    )
+
+    sparse_current = sparse_metrics["current_period"]
+    sparse_previous = sparse_metrics["previous_period"]
+
+    assert sparse_metrics["total_records"] == 3
+
+    assert sparse_current["start_date"] == "2026-08-06"
+    assert sparse_current["end_date"] == "2026-08-12"
+
+    assert sparse_current["days_recorded"] == 3
+    assert sparse_current["workout_days"] == 2
+    assert sparse_current["total_training_minutes"] == 75
+
+    assert isclose(
+        sparse_current["average_sleep_hours"],
+        23.5 / 3,
+    )
+
+    assert isclose(
+        sparse_current["average_study_hours"],
+        7 / 3,
+    )
+
+    assert isclose(
+        sparse_current["average_mood_rating"],
+        4.0,
+    )
+
+    assert sparse_current["mood_entries"] == 2
+
+    assert isclose(
+        sparse_current["average_training_exertion"],
+        6.5,
+    )
+
+    assert sparse_previous["days_recorded"] == 0
+
+    assert sparse_metrics["comparison_available"] is False
+    assert sparse_metrics["differences"] is None
+
     print(
-        "PASS - Current period, previous period, and comparison "
-        "all match the independently calculated values."
+        "PASS - Full periods, one-period-only data, sparse data, "
+        "empty data, and comparison behavior all match the expected values."
     )
 
 
