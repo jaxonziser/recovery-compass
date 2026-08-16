@@ -281,3 +281,23 @@ Student role:
 
 No analytics feature was accepted solely because AI predicted it would work.
 Actual test output and student understanding were required.
+
+## Week 5 - Chart-Ready Data
+
+AI assistance was used to:
+
+- propose the chart-data architecture and output contract
+- explain separation between storage, analytics, and future UI layers
+- propose `prepare_chart_data()` implementation
+- explain rest-day `0` versus `None` semantics
+- propose representative manual acceptance tests
+
+Student responsibilities included:
+
+- reviewing and approving the chart-data contract
+- entering and running the implementation
+- running the existing analytics regression suite
+- running the new manual chart-data acceptance test
+- reviewing the generated datasets
+- explaining the architecture and missing-value behavior in their own words
+- accepting the feature only after successful testing and understanding

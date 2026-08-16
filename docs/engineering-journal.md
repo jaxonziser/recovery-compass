@@ -1057,3 +1057,24 @@ No additional analytics metrics, Streamlit work, model interpretation, causal
 claims, or visual work were added during this block.
 
 The existing `analytics.py` implementation required no defect repair.
+
+## Week 5 - Chart-Ready Analytics Data
+
+Added `prepare_chart_data(records)` to the deterministic analytics layer.
+
+The function receives already-valid normalized records and prepares three
+chronological factual datasets for future visualization:
+
+- sleep + mood
+- training duration + perceived exertion + workout type
+- study hours
+
+The analytics layer does not read CSV files directly and does not contain
+Streamlit, chart styling, interpretation, recommendations, or UI logic.
+
+For chart semantics, a day without an actual workout keeps
+`duration_minutes = 0`, while `perceived_exertion` becomes `None`.
+This distinguishes factual zero training time from the absence of an
+applicable exertion measurement.
+
+No changes were required to the previously qualified metric calculations.

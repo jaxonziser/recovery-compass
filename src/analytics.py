@@ -185,3 +185,54 @@ def calculate_metrics(
         "comparison_available": comparison_available,
         "differences": differences,
     }
+
+
+def prepare_chart_data(
+    records: list[dict[str, object]],
+) -> dict[str, list[dict[str, object]]]:
+    """Prepare chronological factual datasets for future charts."""
+    sorted_records = sorted(
+        records,
+        key=lambda record: _to_date(record["date"]),
+    )
+
+    sleep_mood = []
+    training = []
+    study = []
+
+    for record in sorted_records:
+        record_date = _to_date(record["date"]).isoformat()
+
+        sleep_mood.append(
+            {
+                "date": record_date,
+                "sleep_hours": record["sleep_hours"],
+                "mood_rating": record["mood_rating"],
+            }
+        )
+
+        training.append(
+            {
+                "date": record_date,
+                "workout_type": record["workout_type"],
+                "duration_minutes": record["duration_minutes"],
+                "perceived_exertion": (
+                    record["perceived_exertion"]
+                    if _is_workout(record)
+                    else None
+                ),
+            }
+        )
+
+        study.append(
+            {
+                "date": record_date,
+                "study_hours": record["study_hours"],
+            }
+        )
+
+    return {
+        "sleep_mood": sleep_mood,
+        "training": training,
+        "study": study,
+    }

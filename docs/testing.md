@@ -432,3 +432,21 @@ Final result:
 
 PASS - Full periods, one-period-only data, sparse data, empty data, and
 comparison behavior all match the expected values.
+
+## Week 5 - Chart-Ready Data Acceptance
+
+Added and manually tested `prepare_chart_data()` in `src/analytics.py`.
+
+Acceptance checks covered:
+
+- sleep/mood, training, and study datasets
+- chronological sorting even when source records are out of order
+- preservation of missing mood as `None`
+- preservation of workout type for future chart context/tooltips
+- rest/no-workout days represented as `duration_minutes = 0` and
+  `perceived_exertion = None`
+- representative workout, sleep, mood, and study values
+- empty input returning three empty datasets
+- existing analytics regression suite still passing after the change
+
+Result: PASS.
