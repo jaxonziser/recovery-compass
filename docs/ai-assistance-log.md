@@ -301,3 +301,27 @@ Student responsibilities included:
 - reviewing the generated datasets
 - explaining the architecture and missing-value behavior in their own words
 - accepting the feature only after successful testing and understanding
+
+## 2026-08-22 — Recovery Compass Dashboard
+
+AI assistance was used to:
+
+- propose and implement the Streamlit dashboard presentation layer;
+- design the visual hierarchy and dark chart treatment;
+- implement Altair visualizations from the already-approved chart-ready datasets;
+- identify visual/semantic defects during iterative QA;
+- create a deterministic multi-scenario dashboard QA generator;
+- explain distinctions between missing values, Rest-day values, and legitimate zero values;
+- update deprecated Streamlit chart-width usage.
+
+Student responsibilities included:
+
+- approving the dashboard behavior and visual direction;
+- running the application locally;
+- visually reviewing each complete, missing, sparse, and empty scenario;
+- identifying aesthetic preferences and requesting revisions;
+- verifying metric behavior against the underlying records;
+- running the final analytics and chart-data regression checks;
+- accepting or rejecting each dashboard revision.
+
+The dashboard was not accepted solely on the basis of AI prediction. Final acceptance required local execution and student review.

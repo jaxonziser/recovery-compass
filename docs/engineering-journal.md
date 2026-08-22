@@ -1078,3 +1078,34 @@ This distinguishes factual zero training time from the absence of an
 applicable exertion measurement.
 
 No changes were required to the previously qualified metric calculations.
+
+## 2026-08-22 — Dashboard B Qualification
+
+Completed the first full Recovery Compass analytics dashboard.
+
+The dashboard now includes:
+
+- Current seven-day summary cards
+- Sleep and Mood visualizations
+- Training Duration visualization
+- Perceived Exertion visualization
+- Study Hours visualization
+- Recent Records
+- Metric/calculation transparency section
+- Explicit sparse-data and empty-data behavior
+
+The visual system uses a light application surface with dark analytics panels, restrained metric-specific accents, consistent hierarchy, units, spacing, and explanatory labels.
+
+No new analytics metrics were introduced. The dashboard remains a presentation layer over the previously qualified deterministic analytics and chart-ready data contracts.
+
+Important semantic decisions retained:
+
+- Missing data is distinct from zero.
+- Rest-day exertion is unavailable rather than zero.
+- A recorded non-Rest exertion value of zero remains a legitimate visible value.
+- Sparse periods display available facts but do not unlock formal week-to-week comparison.
+- Calendar gaps remain visible rather than compressing time.
+
+Four deterministic dashboard scenarios—complete, missing/rest/zero, sparse, and empty—were manually visually accepted.
+
+Dashboard A/B is qualified as the stable visual baseline.
