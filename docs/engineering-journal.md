@@ -1109,3 +1109,45 @@ Important semantic decisions retained:
 Four deterministic dashboard scenarios—complete, missing/rest/zero, sparse, and empty—were manually visually accepted.
 
 Dashboard A/B is qualified as the stable visual baseline.
+
+## 2026-08-26 — Streamlit User Data Workflow
+
+Implemented the first production user-input workflow in `app.py`.
+
+The Streamlit layer now connects to the existing qualified application
+architecture rather than duplicating business logic:
+
+Streamlit UI
+→ `validate_record()`
+→ `normalize_record()`
+→ `save_record()`
+→ persisted Recovery Compass data
+→ existing analytics / dashboard
+
+Added:
+
+- Daily entry form for all seven schema fields.
+- Optional mood handling.
+- Friendly validation-error presentation.
+- Duplicate-date handling.
+- Save confirmation and dashboard rerun.
+- Download/export workflow.
+- CSV upload/import workflow.
+- All-or-nothing import failure presentation.
+
+The implementation deliberately preserves `src/validation.py` as the
+validation authority and `src/storage.py` as the persistence authority.
+`app.py` does not independently redefine those rules.
+
+Runtime qualification passed for invalid input, valid save, persistence,
+duplicate dates, export, conflicting import, valid import, import persistence,
+and malformed import.
+
+Existing analytics, chart-data, and storage regression checks all passed after
+integration.
+
+The current layout is not the intended public-release interface. A dedicated
+v1.0 progressive-disclosure, onboarding, navigation, and visual-consistency
+pass remains required before release.
+
+**Result: Streamlit User Data Workflow — QUALIFIED.**

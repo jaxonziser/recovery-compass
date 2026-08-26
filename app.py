@@ -1,13 +1,28 @@
 """Streamlit dashboard for Recovery Compass v0.1."""
+# Build: 2026-08-26 Wednesday data workflow v3 (qualified entry styling + data-tools visual fix)
 
 from datetime import date, timedelta
 from html import escape
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import altair as alt
 import streamlit as st
 
 from src.analytics import calculate_metrics, prepare_chart_data
-from src.storage import load_records
+from src.storage import (
+    DuplicateDateError,
+    StorageError,
+    export_records,
+    import_records,
+    load_records,
+    save_record,
+)
+from src.validation import (
+    WORKOUT_TYPES,
+    normalize_record,
+    validate_record,
+)
 
 
 # ---------------------------------------------------------
@@ -465,6 +480,146 @@ st.html(
         }
 
         /* -------------------------------------------------
+           Daily-entry form
+        ------------------------------------------------- */
+
+        div[data-testid="stForm"] label,
+        div[data-testid="stForm"] [data-testid="stWidgetLabel"] p {
+            color: var(--rc-text) !important;
+            font-weight: 650 !important;
+        }
+
+        div[data-testid="stForm"] [data-testid="stTooltipIcon"] svg {
+            color: var(--rc-muted) !important;
+            fill: var(--rc-muted) !important;
+        }
+
+        div[data-testid="stForm"] div[data-testid="stDateInput"] input,
+        div[data-testid="stForm"] div[data-testid="stNumberInput"] input {
+            background: #FFFFFF !important;
+            color: var(--rc-text) !important;
+            border-color: #D5DCE5 !important;
+        }
+
+        div[data-testid="stForm"] div[data-testid="stNumberInput"] button {
+            background: #F7F9FB !important;
+            color: var(--rc-muted) !important;
+            border-color: #D5DCE5 !important;
+        }
+
+        div[data-testid="stForm"] [data-baseweb="select"] > div {
+            background: #FFFFFF !important;
+            color: var(--rc-text) !important;
+            border-color: #D5DCE5 !important;
+        }
+
+        div[data-testid="stForm"] [data-baseweb="select"] span {
+            color: var(--rc-text) !important;
+        }
+
+        div[data-testid="stFormSubmitButton"] button {
+            background: linear-gradient(
+                100deg,
+                var(--rc-navy-900) 0%,
+                var(--rc-teal-700) 100%
+            ) !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(16, 42, 67, 0.16) !important;
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 12px rgba(16, 42, 67, 0.12) !important;
+        }
+
+        div[data-testid="stFormSubmitButton"] button:hover {
+            filter: brightness(1.04);
+            border-color: rgba(16, 42, 67, 0.28) !important;
+        }
+
+        /* -------------------------------------------------
+           Data tools
+        ------------------------------------------------- */
+
+        .rc-data-tool-title {
+            color: var(--rc-navy-950);
+            font-size: 1rem;
+            line-height: 1.25;
+            font-weight: 750;
+            margin: 0 0 0.22rem 0;
+        }
+
+        .rc-data-tool-copy {
+            color: var(--rc-muted);
+            font-size: 0.79rem;
+            line-height: 1.45;
+            margin: 0 0 0.75rem 0;
+        }
+
+        div[data-testid="stDownloadButton"] button {
+            background: linear-gradient(
+                100deg,
+                var(--rc-navy-900) 0%,
+                var(--rc-teal-700) 100%
+            ) !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(16, 42, 67, 0.16) !important;
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 12px rgba(16, 42, 67, 0.10) !important;
+        }
+
+        div[data-testid="stDownloadButton"] button:hover {
+            filter: brightness(1.04);
+            border-color: rgba(16, 42, 67, 0.28) !important;
+        }
+
+        div[data-testid="stFileUploader"] label,
+        div[data-testid="stFileUploader"] [data-testid="stWidgetLabel"] p {
+            color: var(--rc-text) !important;
+            font-weight: 650 !important;
+        }
+
+        div[data-testid="stFileUploaderDropzone"] {
+            background: #F8FAFC !important;
+            border: 1px dashed #C7D0DC !important;
+            border-radius: 12px !important;
+        }
+
+        div[data-testid="stFileUploaderDropzone"] button {
+            background: #FFFFFF !important;
+            color: var(--rc-navy-900) !important;
+            border: 1px solid #C7D0DC !important;
+            border-radius: 8px !important;
+            font-weight: 650 !important;
+        }
+
+        div[data-testid="stFileUploaderDropzone"] small,
+        div[data-testid="stFileUploaderDropzone"] span,
+        div[data-testid="stFileUploaderDropzone"] p {
+            color: var(--rc-muted) !important;
+        }
+
+        div[data-testid="stButton"] button {
+            background: #FFFFFF !important;
+            color: var(--rc-navy-900) !important;
+            border: 1px solid #BFCAD6 !important;
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+        }
+
+        div[data-testid="stButton"] button:hover:not(:disabled) {
+            background: #F6FAFB !important;
+            border-color: var(--rc-teal-700) !important;
+            color: var(--rc-teal-700) !important;
+        }
+
+        div[data-testid="stButton"] button:disabled {
+            background: #F3F5F8 !important;
+            color: #98A2B3 !important;
+            border-color: #D8DEE7 !important;
+            opacity: 1 !important;
+        }
+
+        /* -------------------------------------------------
            Altair chart surface
         ------------------------------------------------- */
 
@@ -797,6 +952,420 @@ def _display_recent_records(
     )
 
 
+def _render_daily_entry() -> None:
+    """Render the daily-entry form and save one validated record."""
+
+    saved_date = st.session_state.pop(
+        "recovery_compass_saved_date",
+        None,
+    )
+
+    if saved_date is not None:
+        readable_date = date.fromisoformat(saved_date).strftime(
+            "%B %d, %Y"
+        )
+
+        st.success(
+            f"Entry for {readable_date} was saved successfully."
+        )
+
+    st.html(
+        """
+        <div class="rc-section-heading">
+            <div>
+                <div class="rc-section-kicker">
+                    Daily check-in
+                </div>
+
+                <div class="rc-section-title">
+                    Add Today's Entry
+                </div>
+
+                <div class="rc-section-note">
+                    Log one day of training, sleep, mood, and study.
+                    Recovery Compass uses these entries to build your
+                    seven-day overview.
+                </div>
+            </div>
+        </div>
+        """
+    )
+
+    with st.container(border=True):
+
+        with st.form(
+            "daily_entry_form",
+            clear_on_submit=False,
+        ):
+
+            row_one = st.columns(
+                2,
+                gap="medium",
+            )
+
+            with row_one[0]:
+                entry_date = st.date_input(
+                    "Date",
+                    value=date.today(),
+                    help="Choose the day this entry describes.",
+                )
+
+            with row_one[1]:
+                workout_type = st.selectbox(
+                    "Workout Type",
+                    options=list(WORKOUT_TYPES.values()),
+                    help=(
+                        "Choose Rest if you did not complete "
+                        "a workout that day."
+                    ),
+                )
+
+            row_two = st.columns(
+                2,
+                gap="medium",
+            )
+
+            with row_two[0]:
+                duration_minutes = st.number_input(
+                    "Workout Duration (minutes)",
+                    min_value=0,
+                    max_value=300,
+                    value=None,
+                    step=1,
+                    placeholder="Example: 45",
+                    help=(
+                        "Enter 0 on a rest day. "
+                        "Maximum: 300 minutes."
+                    ),
+                )
+
+            with row_two[1]:
+                perceived_exertion = st.number_input(
+                    "Perceived Exertion",
+                    min_value=0,
+                    max_value=10,
+                    value=None,
+                    step=1,
+                    placeholder="0 to 10",
+                    help=(
+                        "0 means no effort. "
+                        "10 means maximum perceived effort."
+                    ),
+                )
+
+            row_three = st.columns(
+                3,
+                gap="medium",
+            )
+
+            with row_three[0]:
+                sleep_hours = st.number_input(
+                    "Sleep Hours",
+                    min_value=0.0,
+                    max_value=16.0,
+                    value=None,
+                    step=0.1,
+                    placeholder="Example: 7.5",
+                    help=(
+                        "Enter the approximate number of "
+                        "hours you slept."
+                    ),
+                )
+
+            with row_three[1]:
+                mood_choice = st.selectbox(
+                    "Mood Rating",
+                    options=[
+                        "Not recorded",
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                    ],
+                    help=(
+                        "Optional. 1 is the lowest rating "
+                        "and 5 is the highest."
+                    ),
+                )
+
+            with row_three[2]:
+                study_hours = st.number_input(
+                    "Study Hours",
+                    min_value=0.0,
+                    max_value=16.0,
+                    value=None,
+                    step=0.1,
+                    placeholder="Example: 2.0",
+                    help=(
+                        "Enter time spent studying or doing "
+                        "academic work."
+                    ),
+                )
+
+            submitted = st.form_submit_button(
+                "Save Entry",
+                type="primary",
+                width="stretch",
+            )
+
+    if not submitted:
+        return
+
+    candidate_record = {
+        "date": entry_date.isoformat(),
+        "workout_type": workout_type,
+        "duration_minutes": (
+            ""
+            if duration_minutes is None
+            else str(duration_minutes)
+        ),
+        "perceived_exertion": (
+            ""
+            if perceived_exertion is None
+            else str(perceived_exertion)
+        ),
+        "sleep_hours": (
+            ""
+            if sleep_hours is None
+            else str(sleep_hours)
+        ),
+        "mood_rating": (
+            ""
+            if mood_choice == "Not recorded"
+            else mood_choice
+        ),
+        "study_hours": (
+            ""
+            if study_hours is None
+            else str(study_hours)
+        ),
+    }
+
+    errors = validate_record(candidate_record)
+
+    if errors:
+        st.error(
+            "Your entry was not saved. "
+            "Please fix the items below."
+        )
+
+        for error in errors:
+            st.markdown(f"- {error}")
+
+        return
+
+    try:
+        normalized_record = normalize_record(
+            candidate_record
+        )
+
+        save_record(
+            normalized_record
+        )
+
+    except DuplicateDateError:
+        st.error(
+            "Recovery Compass already has an entry for "
+            f"{entry_date.strftime('%B %d, %Y')}. "
+            "Only one entry is stored for each day."
+        )
+
+        return
+
+    except StorageError as error:
+        st.error(
+            "Recovery Compass could not save this entry safely. "
+            "Your existing records were not changed."
+        )
+
+        st.caption(
+            f"Technical detail: {error}"
+        )
+
+        return
+
+    st.session_state[
+        "recovery_compass_saved_date"
+    ] = entry_date.isoformat()
+
+    st.rerun()
+
+
+def _build_export_bytes() -> bytes:
+    """Build one validated CSV export and return its bytes."""
+
+    with TemporaryDirectory() as temporary_directory:
+        export_path = (
+            Path(temporary_directory)
+            / "recovery_compass.csv"
+        )
+
+        export_records(export_path)
+
+        return export_path.read_bytes()
+
+
+def _render_data_tools(
+    records: list[dict[str, object]],
+) -> None:
+    """Render privacy-conscious import and export controls."""
+
+    imported_count = st.session_state.pop(
+        "recovery_compass_imported_count",
+        None,
+    )
+
+    if imported_count is not None:
+        noun = "record" if imported_count == 1 else "records"
+
+        st.success(
+            f"Imported {imported_count} {noun} successfully. "
+            "Your dashboard has been refreshed."
+        )
+
+    st.html(
+        """
+        <div class="rc-section-heading">
+            <div>
+                <div class="rc-section-kicker">
+                    Your data
+                </div>
+
+                <div class="rc-section-title">
+                    Import or Download Your Records
+                </div>
+
+                <div class="rc-section-note">
+                    Keep a copy of your Recovery Compass history or
+                    bring a previously saved Recovery Compass data file
+                    back into the app.
+                </div>
+            </div>
+        </div>
+        """
+    )
+
+    with st.container(border=True):
+        download_column, import_column = st.columns(
+            2,
+            gap="large",
+        )
+
+        with download_column:
+            st.html(
+                """
+                <div class="rc-data-tool-title">Download My Data</div>
+                <div class="rc-data-tool-copy">
+                    Save a copy of all of your current Recovery Compass
+                    records as a CSV file.
+                </div>
+                """
+            )
+
+            if not records:
+                st.info(
+                    "Save your first entry before downloading your data."
+                )
+
+            else:
+                try:
+                    export_bytes = _build_export_bytes()
+
+                except StorageError as error:
+                    st.error(
+                        "Recovery Compass could not prepare your data "
+                        "for download."
+                    )
+                    st.caption(
+                        f"Technical detail: {error}"
+                    )
+
+                else:
+                    st.download_button(
+                        "Download My Data",
+                        data=export_bytes,
+                        file_name="recovery_compass.csv",
+                        mime="text/csv",
+                        type="primary",
+                        width="stretch",
+                    )
+
+        with import_column:
+            st.html(
+                """
+                <div class="rc-data-tool-title">Import My Data</div>
+                <div class="rc-data-tool-copy">
+                    Choose a Recovery Compass CSV file. The entire file is
+                    checked before any existing records are changed.
+                </div>
+                """
+            )
+
+            uploaded_file = st.file_uploader(
+                "Choose a Recovery Compass CSV file",
+                type=["csv"],
+                accept_multiple_files=False,
+                key="recovery_compass_import_file",
+            )
+
+            import_clicked = st.button(
+                "Import My Data",
+                type="secondary",
+                width="stretch",
+                disabled=uploaded_file is None,
+            )
+
+            if import_clicked and uploaded_file is not None:
+                try:
+                    with TemporaryDirectory() as temporary_directory:
+                        import_path = (
+                            Path(temporary_directory)
+                            / "recovery_compass_import.csv"
+                        )
+
+                        import_path.write_bytes(
+                            uploaded_file.getvalue()
+                        )
+
+                        count = import_records(import_path)
+
+                except DuplicateDateError as error:
+                    st.error(
+                        "Import was not applied because at least one date "
+                        "conflicts with data already saved in Recovery "
+                        "Compass. Your existing records were not changed."
+                    )
+                    st.caption(
+                        f"Technical detail: {error}"
+                    )
+
+                except StorageError as error:
+                    st.error(
+                        "Recovery Compass could not import this file safely. "
+                        "Your existing records were not changed."
+                    )
+                    st.caption(
+                        f"Technical detail: {error}"
+                    )
+
+                except OSError as error:
+                    st.error(
+                        "Recovery Compass could not read the selected file. "
+                        "Your existing records were not changed."
+                    )
+                    st.caption(
+                        f"Technical detail: {error}"
+                    )
+
+                else:
+                    st.session_state[
+                        "recovery_compass_imported_count"
+                    ] = count
+
+                    st.rerun()
+
+
 # ---------------------------------------------------------
 # Load data
 # ---------------------------------------------------------
@@ -891,6 +1460,11 @@ st.html(
     </div>
     """,
 )
+
+
+_render_daily_entry()
+
+_render_data_tools(records)
 
 
 # ---------------------------------------------------------

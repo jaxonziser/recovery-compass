@@ -325,3 +325,37 @@ Student responsibilities included:
 - accepting or rejecting each dashboard revision.
 
 The dashboard was not accepted solely on the basis of AI prediction. Final acceptance required local execution and student review.
+
+## 2026-08-26 — Streamlit User Data Workflow Integration
+
+AI assistance was used as a technical implementation and architecture
+collaborator for the Streamlit user-data workflow.
+
+AI assistance included:
+
+- Inspecting the existing validation, storage, and dashboard architecture.
+- Identifying the correct integration points in `app.py`.
+- Drafting the Streamlit daily-entry/save implementation.
+- Drafting the import/export interface and integration.
+- Explaining how UI values flow through validation, normalization, storage,
+  rerun, and dashboard recalculation.
+- Identifying presentation defects during visual review and proposing UI
+  corrections.
+- Defining runtime acceptance tests for save, persistence, duplicate-date
+  protection, export, valid import, conflicting import, and malformed import.
+
+The creator personally:
+
+- Reviewed and approved the intended behavior.
+- Replaced and ran the generated `app.py`.
+- Performed the runtime acceptance tests.
+- Inspected the resulting UI states.
+- Verified persistence through refresh / app reopen.
+- Verified the exported CSV.
+- Verified valid, conflicting, and malformed imports.
+- Ran the existing analytics, chart-data, and storage regression checks.
+- Accepted the workflow as qualified while identifying the current UI as
+  insufficiently polished for public release.
+
+No claim is made that the Streamlit implementation was independently coded
+without AI assistance.

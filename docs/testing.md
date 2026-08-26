@@ -474,3 +474,64 @@ Qualified behaviors:
 - Dashboard empty states render cleanly without a data file.
 - `python -m tests.manual_analytics_check` passed after dashboard work.
 - `python -m tests.manual_chart_data_check` passed after dashboard work.
+
+## 2026-08-26 — Streamlit User Data Workflow Qualification
+
+Recovery Compass's first release-critical Streamlit data workflow was
+qualified against the existing validation, storage, analytics, and chart
+contracts.
+
+### Daily entry / save
+
+- PASS — Required blank fields were rejected with visible validation errors.
+- PASS — A valid record was normalized and saved successfully.
+- PASS — Saved records persisted after browser refresh / app reopen.
+- PASS — A duplicate date was rejected without replacing the existing record.
+- PASS — The dashboard remained functional after the save workflow was added.
+
+### Import / export
+
+- PASS — Existing Recovery Compass data exported as a CSV using the documented
+  schema.
+- PASS — Re-importing data containing existing dates was rejected
+  all-or-nothing.
+- PASS — A valid CSV containing a new date imported successfully.
+- PASS — The imported record persisted after browser refresh.
+- PASS — A CSV with malformed / incorrect headers was rejected without
+  changing existing records.
+
+### Regression checks
+
+`python -m tests.manual_analytics_check`
+
+PASS — Full periods, one-period-only data, sparse data, empty data, and
+comparison behavior matched expected values.
+
+`python -m tests.manual_chart_data_check`
+
+PASS — Chart-ready data remained chronological, preserved missing values,
+handled Rest days correctly, and matched representative records.
+
+`python -m tests.manual_storage_acceptance`
+
+PASS — All 9 storage acceptance checks passed.
+
+`python -m tests.manual_storage_round_trip`
+
+PASS — CSV headers and the synthetic record survived the storage round trip
+accurately.
+
+### Qualification result
+
+**Streamlit User Data Workflow — QUALIFIED**
+
+Known v1.0 UX follow-up items remain intentionally open:
+
+- Progressive-disclosure redesign.
+- First-run onboarding / welcome experience.
+- Persistent Help / How It Works access.
+- Visual-system cleanup and consistency pass.
+- Rest-day UI should prevent or resolve contradictory nonzero training
+  duration / exertion values.
+- Some native Streamlit controls still need presentation polish.
+- Some technical-detail text has insufficient contrast.
