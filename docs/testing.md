@@ -1,7 +1,7 @@
 # Recovery Compass Manual Testing
 
-**Test date:** 2026-07-31  
-**Feature:** Daily-record validation and normalization  
+**Test date:** 2026-07-31
+**Feature:** Daily-record validation and normalization
 **Environment:** Windows PowerShell, Python command-line interface
 
 ## Test Results
@@ -535,3 +535,66 @@ Known v1.0 UX follow-up items remain intentionally open:
   duration / exertion values.
 - Some native Streamlit controls still need presentation polish.
 - Some technical-detail text has insufficient contrast.
+
+## 2026-08-28 — Deterministic Feedback and Automated Test Qualification
+
+Recovery Compass added a deterministic factual feedback layer and established
+the project's first real automated pytest suite.
+
+### Deterministic feedback
+
+`src/feedback.py` consumes the existing analytics result and converts qualified
+metrics into reproducible factual statements.
+
+The feedback layer does not:
+
+- recalculate analytics;
+- infer causes;
+- diagnose health or recovery conditions;
+- generate recommendations;
+- create a recovery score;
+- depend on a live AI model.
+
+Qualified behaviors include:
+
+- sparse current-period feedback;
+- no-workout state;
+- missing-mood state;
+- missing exertion state;
+- complete current/previous period comparison;
+- positive, negative, and unchanged comparisons;
+- omission of unavailable optional comparison metrics;
+- deterministic repeatability.
+
+The feedback was also integrated into `app.py` and visually checked against
+the dashboard metrics.
+
+### Automated pytest suite
+
+Added real automated tests for:
+
+- `src/validation.py`
+- `src/storage.py`
+- `src/analytics.py`
+- `src/feedback.py`
+
+Final automated result:
+
+`python -m pytest -q`
+
+PASS — 24 tests passed.
+
+### Regression qualification
+
+PASS — manual analytics check
+PASS — manual chart-data check
+PASS — all 9 manual storage acceptance checks
+PASS — manual storage round-trip
+PASS — `python -m py_compile app.py src/feedback.py`
+PASS — `git diff --check`
+
+### Result
+
+**Deterministic Feedback — QUALIFIED**
+
+**Automated Pytest Foundation — QUALIFIED**

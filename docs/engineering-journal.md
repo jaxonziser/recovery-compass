@@ -1151,3 +1151,74 @@ v1.0 progressive-disclosure, onboarding, navigation, and visual-consistency
 pass remains required before release.
 
 **Result: Streamlit User Data Workflow — QUALIFIED.**
+
+## 2026-08-28 — Deterministic Feedback + Pytest Foundation
+
+Created `src/feedback.py` as a dedicated deterministic presentation layer.
+
+Architecture now follows:
+
+stored records
+→ analytics
+→ deterministic feedback
+→ Streamlit presentation
+
+The feedback module consumes analytics output rather than recalculating
+metrics. This keeps calculation ownership in `analytics.py` and presentation
+logic in `feedback.py`.
+
+The module handles sparse data, absent mood/exertion values, zero-workout
+periods, and complete-period comparisons without inventing missing values.
+
+The Streamlit application now includes a "What Your Data Shows" section that
+presents these deterministic observations.
+
+Also established the first real pytest suite:
+
+- 5 feedback tests
+- 7 validation tests
+- 6 storage tests
+- 6 analytics tests
+
+Total: 24 automated tests.
+
+All existing manual analytics, chart-data, and storage regressions passed after
+integration.
+
+**Result: deterministic feedback and automated-test foundation qualified.**
+
+## 2026-08-28 — v1.0 Optional-Scope Freeze
+
+Following qualification of deterministic feedback and the automated pytest
+foundation, optional feature expansion is frozen for Recovery Compass v1.0.
+
+### Required before v1.0 public release
+
+- Progressive-disclosure information architecture and navigation.
+- First-run welcome / onboarding experience.
+- Persistent Help / How Recovery Compass Works access.
+- Full visual-system and usability cleanup.
+- Resolve contradictory Rest-day input behavior so Rest cannot coexist
+  confusingly with nonzero workout duration / exertion.
+- Finished-product usability testing with users unfamiliar with the project.
+- Final public deployment and data-architecture decision, including privacy
+  and persistence behavior.
+- README, setup, usage, release, and portfolio documentation.
+- Final end-to-end release qualification.
+- Public v1.0 deployment.
+
+### Frozen out of v1.0
+
+The following remain valid future roadmap ideas but are not required for the
+initial release:
+
+- Live GPT / LLM advisor.
+- Dynamic AI-generated training, sleep, study, or wellness recommendations.
+- Sourced AI guidance and external-information retrieval.
+- Additional analytics or metrics beyond the frozen v1.0 contract.
+- Additional chart types or nonessential visualizations.
+- Decorative animation or other nonessential presentation features.
+- Feature expansion unrelated to a remaining required release blocker.
+
+Required v1.0 work remains buildable after this freeze. The freeze prevents
+new optional scope from competing with release completion.

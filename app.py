@@ -1,5 +1,5 @@
 """Streamlit dashboard for Recovery Compass v0.1."""
-# Build: 2026-08-26 Wednesday data workflow v3 (qualified entry styling + data-tools visual fix)
+# Build: 2026-08-28 Friday deterministic feedback integration
 
 from datetime import date, timedelta
 from html import escape
@@ -10,6 +10,7 @@ import altair as alt
 import streamlit as st
 
 from src.analytics import calculate_metrics, prepare_chart_data
+from src.feedback import generate_feedback
 from src.storage import (
     DuplicateDateError,
     StorageError,
@@ -533,6 +534,33 @@ st.html(
         div[data-testid="stFormSubmitButton"] button:hover {
             filter: brightness(1.04);
             border-color: rgba(16, 42, 67, 0.28) !important;
+        }
+
+        /* -------------------------------------------------
+           Deterministic feedback
+        ------------------------------------------------- */
+
+        .rc-feedback-panel {
+            background: #FFFFFF;
+            border: 1px solid var(--rc-border);
+            border-radius: 16px;
+            padding: 1rem 1.15rem;
+            box-shadow:
+                0 1px 2px rgba(16, 24, 40, 0.02),
+                0 6px 18px rgba(16, 24, 40, 0.025);
+        }
+
+        .rc-feedback-list {
+            margin: 0;
+            padding-left: 1.2rem;
+            color: var(--rc-text);
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }
+
+        .rc-feedback-list li {
+            color: var(--rc-text);
+            margin: 0.3rem 0;
         }
 
         /* -------------------------------------------------
@@ -1647,6 +1675,50 @@ st.html(
 
 
 # ---------------------------------------------------------
+# Deterministic feedback
+# ---------------------------------------------------------
+
+feedback_statements = generate_feedback(metrics)
+
+st.html(
+    """
+    <div class="rc-section-heading">
+        <div>
+            <div class="rc-section-kicker">
+                Weekly facts
+            </div>
+
+            <div class="rc-section-title">
+                What Your Data Shows
+            </div>
+
+            <div class="rc-section-note">
+                Reproducible observations calculated from your recorded data.
+                Recovery Compass does not infer causes or generate a recovery
+                score.
+            </div>
+        </div>
+    </div>
+    """,
+)
+
+feedback_items = "".join(
+    f"<li>{escape(statement)}</li>"
+    for statement in feedback_statements
+)
+
+st.html(
+    f"""
+    <div class="rc-feedback-panel">
+        <ul class="rc-feedback-list">
+            {feedback_items}
+        </ul>
+    </div>
+    """,
+)
+
+
+# ---------------------------------------------------------
 # Patterns section
 # ---------------------------------------------------------
 
@@ -2690,40 +2762,39 @@ with st.expander(
 ):
     st.markdown(
         """
-        **Coverage**<br>
-        The number of recorded days in the current seven-calendar-day period.
+**Coverage**
+The number of recorded days in the current seven-calendar-day period.
 
-        **Workout Days**<br>
-        Counts only days with a non-Rest workout and more than zero
-        training minutes.
+**Workout Days**
+Counts only days with a non-Rest workout and more than zero training minutes.
 
-        **Average Sleep**<br>
-        Uses sleep values from the recorded days in the current period.
+**Average Sleep**
+Uses sleep values from the recorded days in the current period.
 
-        **Average Mood**<br>
-        Uses only days where a mood rating was actually entered.
-        Missing mood ratings are never treated as zero.
+**Average Mood**
+Uses only days where a mood rating was actually entered. Missing mood ratings
+are never treated as zero.
 
-        **Average Study**<br>
-        Uses study hours from the recorded days in the current period.
+**Average Study**
+Uses study hours from the recorded days in the current period.
 
-        **Average Exertion**<br>
-        Uses perceived exertion from actual workout days only.
+**Average Exertion**
+Uses perceived exertion from actual workout days only.
 
-        **Training Duration Chart**<br>
-        Shows recorded training minutes for each day. Rest days remain at
-        zero minutes; missing days remain missing.
+**Training Duration Chart**
+Shows recorded training minutes for each day. Rest days remain at zero minutes;
+missing days remain missing.
 
-        **Perceived Exertion Chart**<br>
-        Shows recorded exertion for non-Rest entries on a 0–10 scale.
-        Rest days remain blank, and a recorded zero stays visible as zero.
+**Perceived Exertion Chart**
+Shows recorded exertion for non-Rest entries on a 0–10 scale. Rest days remain
+blank, and a recorded zero stays visible as zero.
 
-        **Study Hours Chart**<br>
-        Shows recorded study hours for each day. Missing days are left as
-        gaps rather than being converted to zero.
+**Study Hours Chart**
+Shows recorded study hours for each day. Missing days are left as gaps rather
+than being converted to zero.
 
-        **Week-to-week comparison**<br>
-        Becomes available only when both consecutive seven-day periods
-        contain all seven recorded days.
+**Week-to-week comparison**
+Becomes available only when both consecutive seven-day periods contain all
+seven recorded days.
         """
     )

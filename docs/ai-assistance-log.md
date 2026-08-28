@@ -359,3 +359,33 @@ The creator personally:
 
 No claim is made that the Streamlit implementation was independently coded
 without AI assistance.
+
+## 2026-08-28 — Deterministic Feedback and Automated Testing
+
+AI assistance was used as a technical implementation and testing collaborator.
+
+AI assistance included:
+
+- defining the deterministic-feedback architecture;
+- drafting `src/feedback.py`;
+- identifying edge cases involving missing mood/exertion values;
+- drafting pytest coverage for feedback, validation, storage, and analytics;
+- explaining the distinction between factual deterministic observations and
+  future AI-generated recommendations;
+- assisting with Streamlit integration and presentation fixes;
+- defining the final regression sequence.
+
+The creator personally:
+
+- reviewed and approved the feedback contract;
+- created/replaced the implementation files;
+- ran all pytest tests;
+- reviewed and corrected feedback wording;
+- visually verified feedback against displayed dashboard metrics;
+- ran all existing manual regression checks;
+- ran Python compilation and Git whitespace checks;
+- accepted the deterministic feedback and automated-test foundation after
+  qualification.
+
+No claim is made that these implementation or test files were independently
+coded without AI assistance.
