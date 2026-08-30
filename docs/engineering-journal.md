@@ -1222,3 +1222,50 @@ initial release:
 
 Required v1.0 work remains buildable after this freeze. The freeze prevents
 new optional scope from competing with release completion.
+
+## 2026-08-30 — Release Qualification and Deployment Architecture
+
+Ran the broad Recovery Compass regression set and a date-relative synthetic
+release-state evaluation covering complete, sparse, empty, and missing/zero
+data conditions. No new core analytics, storage, chart, or deterministic
+feedback defects were exposed.
+
+The existing dashboard QA helper used fixed August 2026 dates and had become
+stale as the current seven-day analytics window advanced. It was replaced
+with a date-relative generator so the same scenarios remain reusable.
+
+### v1.0 deployment decision
+
+Recovery Compass v1.0 will use privacy-safe session-scoped user data.
+
+Public v1.0 will not use:
+
+- a shared server-side user CSV;
+- user accounts;
+- authentication;
+- permanent cloud database storage.
+
+Users will preserve data through Recovery Compass CSV download/export and
+restore it through import on a later visit.
+
+The onboarding and Help experience must make this persistence limitation
+explicit before public release.
+
+Persistent user accounts and cloud-backed history remain post-v1.0 roadmap
+work.
+
+### Remaining required release sequence
+
+1. Session-scoped public data architecture.
+2. Rest-day contradictory-input UX repair.
+3. Progressive-disclosure information architecture.
+4. First-run welcome / onboarding.
+5. Persistent Help / How It Works.
+6. Unified visual-system cleanup.
+7. Internal end-to-end qualification.
+8. Fresh-eyes external usability testing.
+9. Fix only test-discovered release blockers.
+10. README / public-use / privacy / limitations documentation.
+11. Clean deployment test.
+12. Final release qualification.
+13. Public v1.0 deployment.

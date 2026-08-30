@@ -389,3 +389,21 @@ The creator personally:
 
 No claim is made that these implementation or test files were independently
 coded without AI assistance.
+
+## 2026-08-30 — Release-State Qualification and Deployment Planning
+
+AI assistance was used to:
+
+- review the frozen v1.0 release state;
+- identify that the dashboard QA fixture had become date-stale;
+- convert the fixture to date-relative synthetic scenarios;
+- define complete, sparse, empty, and missing/zero acceptance criteria;
+- review release-state screenshots;
+- perform the repository privacy/deployment audit;
+- evaluate v1.0 persistence architecture options;
+- define the final Week 8 release runway.
+
+The creator personally ran the regression suite, generated and inspected all
+four synthetic scenarios, restored the working dataset, reviewed repository
+privacy state, and selected session-scoped data plus CSV import/export as the
+v1.0 persistence model.

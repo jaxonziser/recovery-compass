@@ -598,3 +598,60 @@ PASS — `git diff --check`
 **Deterministic Feedback — QUALIFIED**
 
 **Automated Pytest Foundation — QUALIFIED**
+
+## 2026-08-30 — Release-State Synthetic Qualification
+
+Recovery Compass was evaluated against four date-relative synthetic
+release-critical dashboard states using the real storage, analytics,
+feedback, and Streamlit pathways.
+
+### Broad regression baseline
+
+PASS — 24 automated pytest tests
+PASS — manual analytics regression
+PASS — manual chart-data regression
+PASS — all 9 storage acceptance checks
+PASS — storage round-trip
+PASS — Python compilation
+PASS — Git whitespace check
+
+### Synthetic dashboard scenarios
+
+**Complete — PASS**
+- Current 7-day period contained 7/7 recorded days.
+- Previous 7-day period contained 7/7 recorded days.
+- Formal comparison unlocked.
+- Metrics, charts, deterministic feedback, and recent records populated.
+
+**Sparse — PASS**
+- Current period contained 3/7 recorded days.
+- Missing calendar days remained missing rather than becoming zero.
+- Formal previous-period comparison remained unavailable.
+- Metrics, charts, and feedback remained stable.
+
+**Empty — PASS**
+- App loaded safely with no records.
+- Coverage remained 0/7.
+- Missing averages were not fabricated.
+- Empty chart/record states rendered without failure.
+- Daily-entry workflow remained available.
+
+**Missing / Zero — PASS**
+- Current period contained 7/7 recorded days.
+- Missing mood ratings remained missing.
+- Missing mood values were not converted to zero.
+- Rest-day exertion remained excluded.
+- A legitimate non-Rest perceived-exertion value of zero remained a real zero.
+- Comparison and deterministic feedback remained stable.
+
+### QA tooling repair
+
+`tests/manual_dashboard_demo_data.py` was converted from fixed August 2026
+dates to dates relative to the current day so that complete, sparse, empty,
+and missing-data qualification remains valid in future runs.
+
+Generated `data/dashboard_demo.csv` is now explicitly ignored by Git.
+
+### Result
+
+**Synthetic Release-State Evaluation — QUALIFIED**

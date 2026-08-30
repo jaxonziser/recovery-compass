@@ -17,3 +17,6 @@ data/private_*.csv
 # Python-generated files
 __pycache__/
 *.py[cod]
+
+# Generated dashboard QA data
+data/dashboard_demo.csv
