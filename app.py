@@ -1,5 +1,5 @@
 """Streamlit dashboard for Recovery Compass v0.1."""
-# Build: 2026-08-28 Friday deterministic feedback integration
+# Build: 2026-08-30 browser-persistent v1.0 data architecture
 
 from datetime import date, timedelta
 from html import escape
@@ -35,6 +35,75 @@ st.set_page_config(
     page_icon=None,
     layout="wide",
     initial_sidebar_state="collapsed",
+)
+
+
+# ---------------------------------------------------------
+# Browser-local persistence bridge
+# ---------------------------------------------------------
+
+_BROWSER_STORAGE_COMPONENT = st.components.v2.component(
+    "recovery_compass_browser_storage",
+    html='<span aria-hidden="true"></span>',
+    css="""
+        span {
+            display: none;
+        }
+    """,
+    js="""
+        export default function(component) {
+            const { data, setStateValue } = component;
+
+            const action = data?.action ?? "idle";
+            const storageKey = data?.storage_key ?? "";
+            const revision = data?.revision ?? null;
+
+            try {
+                if (action === "read") {
+                    const value = window.localStorage.getItem(storageKey);
+
+                    setStateValue("response", {
+                        status: "read",
+                        revision: revision,
+                        value: value,
+                    });
+
+                    return;
+                }
+
+                if (action === "write") {
+                    window.localStorage.setItem(
+                        storageKey,
+                        data?.payload ?? "",
+                    );
+
+                    setStateValue("response", {
+                        status: "written",
+                        revision: revision,
+                    });
+
+                    return;
+                }
+
+                if (action === "remove") {
+                    window.localStorage.removeItem(storageKey);
+
+                    setStateValue("response", {
+                        status: "removed",
+                        revision: revision,
+                    });
+                }
+            } catch (error) {
+                setStateValue("response", {
+                    status: "error",
+                    revision: revision,
+                    message: String(
+                        error?.message ?? error ?? "Unknown browser-storage error"
+                    ),
+                });
+            }
+        }
+    """,
 )
 
 
@@ -980,6 +1049,404 @@ def _display_recent_records(
     )
 
 
+SESSION_RECORDS_KEY = "recovery_compass_records"
+BROWSER_STORAGE_KEY = "recovery_compass_v1_csv"
+BROWSER_STORAGE_HYDRATED_KEY = "recovery_compass_browser_storage_hydrated"
+BROWSER_STORAGE_PENDING_KEY = "recovery_compass_browser_storage_pending"
+BROWSER_STORAGE_REVISION_KEY = "recovery_compass_browser_storage_revision"
+BROWSER_STORAGE_ERROR_KEY = "recovery_compass_browser_storage_error"
+BROWSER_STORAGE_COMPONENT_KEY = "recovery_compass_browser_storage_bridge"
+
+
+def _get_session_records() -> list[dict[str, object]]:
+    """Return a defensive copy of this browser session's records."""
+
+    if SESSION_RECORDS_KEY not in st.session_state:
+        st.session_state[SESSION_RECORDS_KEY] = []
+
+    return [
+        dict(record)
+        for record in st.session_state[SESSION_RECORDS_KEY]
+    ]
+
+
+def _write_records_to_path(
+    records: list[dict[str, object]],
+    file_path: Path,
+) -> None:
+    """Materialize records through the qualified CSV storage layer."""
+
+    for record in records:
+        save_record(
+            record,
+            file_path=file_path,
+        )
+
+
+def _records_to_csv_text(
+    records: list[dict[str, object]],
+) -> str:
+    """Serialize validated records to Recovery Compass CSV text."""
+
+    if not records:
+        return ""
+
+    with TemporaryDirectory() as temporary_directory:
+        csv_path = (
+            Path(temporary_directory)
+            / "browser_records.csv"
+        )
+
+        _write_records_to_path(
+            records,
+            csv_path,
+        )
+
+        return csv_path.read_text(
+            encoding="utf-8"
+        )
+
+
+def _records_from_csv_text(
+    csv_text: str,
+) -> list[dict[str, object]]:
+    """Validate browser-stored CSV text and return normalized records."""
+
+    if not csv_text.strip():
+        return []
+
+    with TemporaryDirectory() as temporary_directory:
+        csv_path = (
+            Path(temporary_directory)
+            / "browser_records.csv"
+        )
+
+        csv_path.write_text(
+            csv_text,
+            encoding="utf-8",
+        )
+
+        return load_records(
+            csv_path
+        )
+
+
+def _queue_browser_storage_write(
+    records: list[dict[str, object]],
+) -> None:
+    """Queue one browser-local write that must be acknowledged."""
+
+    payload = _records_to_csv_text(
+        records
+    )
+
+    revision = (
+        int(
+            st.session_state.get(
+                BROWSER_STORAGE_REVISION_KEY,
+                0,
+            )
+        )
+        + 1
+    )
+
+    st.session_state[
+        BROWSER_STORAGE_REVISION_KEY
+    ] = revision
+
+    st.session_state[
+        BROWSER_STORAGE_PENDING_KEY
+    ] = {
+        "revision": revision,
+        "payload": payload,
+    }
+
+
+def _set_session_records(
+    records: list[dict[str, object]],
+) -> None:
+    """Replace records and queue persistence to this browser."""
+
+    validated_copy = [
+        dict(record)
+        for record in records
+    ]
+
+    _queue_browser_storage_write(
+        validated_copy
+    )
+
+    st.session_state[
+        SESSION_RECORDS_KEY
+    ] = validated_copy
+
+
+def _mount_browser_storage_bridge(
+    *,
+    action: str,
+    revision: int,
+    payload: str | None = None,
+):
+    """Mount the invisible browser-local storage bridge."""
+
+    return _BROWSER_STORAGE_COMPONENT(
+        data={
+            "action": action,
+            "storage_key": BROWSER_STORAGE_KEY,
+            "revision": revision,
+            "payload": payload,
+        },
+        default={
+            "response": None,
+        },
+        on_response_change=lambda: None,
+        key=BROWSER_STORAGE_COMPONENT_KEY,
+    )
+
+
+def _sync_browser_storage() -> None:
+    """Hydrate from and persist to browser localStorage safely."""
+
+    hydrated = bool(
+        st.session_state.get(
+            BROWSER_STORAGE_HYDRATED_KEY,
+            False,
+        )
+    )
+
+    if not hydrated:
+        result = _mount_browser_storage_bridge(
+            action="read",
+            revision=0,
+        )
+
+        response = result.response
+
+        if not isinstance(response, dict):
+            st.stop()
+
+        status = response.get("status")
+
+        if status == "error":
+            st.session_state[
+                SESSION_RECORDS_KEY
+            ] = []
+
+            st.session_state[
+                BROWSER_STORAGE_ERROR_KEY
+            ] = (
+                "Recovery Compass could not read browser-saved data: "
+                + str(
+                    response.get(
+                        "message",
+                        "unknown browser-storage error",
+                    )
+                )
+            )
+
+            st.session_state[
+                BROWSER_STORAGE_HYDRATED_KEY
+            ] = True
+
+            return
+
+        if status != "read":
+            st.stop()
+
+        stored_value = response.get("value")
+
+        try:
+            if stored_value is None:
+                hydrated_records = []
+            elif isinstance(stored_value, str):
+                hydrated_records = _records_from_csv_text(
+                    stored_value
+                )
+            else:
+                raise StorageError(
+                    "Browser-saved data has an unexpected format."
+                )
+
+        except (StorageError, OSError) as error:
+            st.session_state[
+                SESSION_RECORDS_KEY
+            ] = []
+
+            st.session_state[
+                BROWSER_STORAGE_ERROR_KEY
+            ] = (
+                "Recovery Compass found browser-saved data "
+                f"that could not be validated: {error}"
+            )
+
+        else:
+            st.session_state[
+                SESSION_RECORDS_KEY
+            ] = [
+                dict(record)
+                for record in hydrated_records
+            ]
+
+            st.session_state.pop(
+                BROWSER_STORAGE_ERROR_KEY,
+                None,
+            )
+
+        st.session_state[
+            BROWSER_STORAGE_HYDRATED_KEY
+        ] = True
+
+    pending = st.session_state.get(
+        BROWSER_STORAGE_PENDING_KEY
+    )
+
+    if not pending:
+        return
+
+    revision = int(
+        pending["revision"]
+    )
+
+    result = _mount_browser_storage_bridge(
+        action="write",
+        revision=revision,
+        payload=str(
+            pending["payload"]
+        ),
+    )
+
+    response = result.response
+
+    if (
+        not isinstance(response, dict)
+        or response.get("revision") != revision
+    ):
+        st.stop()
+
+    status = response.get("status")
+
+    if status == "written":
+        st.session_state.pop(
+            BROWSER_STORAGE_PENDING_KEY,
+            None,
+        )
+
+        st.session_state.pop(
+            BROWSER_STORAGE_ERROR_KEY,
+            None,
+        )
+
+        return
+
+    if status == "error":
+        st.session_state.pop(
+            BROWSER_STORAGE_PENDING_KEY,
+            None,
+        )
+
+        st.session_state[
+            BROWSER_STORAGE_ERROR_KEY
+        ] = (
+            "Recovery Compass could not save data in this browser: "
+            + str(
+                response.get(
+                    "message",
+                    "unknown browser-storage error",
+                )
+            )
+        )
+
+        return
+
+    st.stop()
+
+
+def _render_browser_storage_warning() -> None:
+    """Explain when browser-local persistence is unavailable."""
+
+    error = st.session_state.get(
+        BROWSER_STORAGE_ERROR_KEY
+    )
+
+    if error is None:
+        return
+
+    st.warning(
+        "Browser persistence is currently unavailable. "
+        "Your current session can still work, but refreshing or closing "
+        "the page may clear its records. Download your data before leaving."
+    )
+
+    st.caption(
+        f"Technical detail: {error}"
+    )
+
+
+def _save_session_record(
+    record: dict[str, object],
+) -> None:
+    """Validate and add one record to this browser's data atomically."""
+
+    existing_records = _get_session_records()
+
+    with TemporaryDirectory() as temporary_directory:
+        working_path = (
+            Path(temporary_directory)
+            / "session_records.csv"
+        )
+
+        _write_records_to_path(
+            existing_records,
+            working_path,
+        )
+
+        save_record(
+            record,
+            file_path=working_path,
+        )
+
+        updated_records = load_records(
+            working_path
+        )
+
+    _set_session_records(
+        updated_records
+    )
+
+
+def _import_session_records(
+    import_path: Path,
+) -> int:
+    """Import a valid CSV into this browser using all-or-nothing behavior."""
+
+    existing_records = _get_session_records()
+
+    with TemporaryDirectory() as temporary_directory:
+        working_path = (
+            Path(temporary_directory)
+            / "session_records.csv"
+        )
+
+        _write_records_to_path(
+            existing_records,
+            working_path,
+        )
+
+        count = import_records(
+            import_path,
+            working_path=working_path,
+        )
+
+        updated_records = load_records(
+            working_path
+        )
+
+    _set_session_records(
+        updated_records
+    )
+
+    return count
+
 def _render_daily_entry() -> None:
     """Render the daily-entry form and save one validated record."""
 
@@ -994,7 +1461,7 @@ def _render_daily_entry() -> None:
         )
 
         st.success(
-            f"Entry for {readable_date} was saved successfully."
+            f"Entry for {readable_date} was saved in this browser."
         )
 
     st.html(
@@ -1188,7 +1655,7 @@ def _render_daily_entry() -> None:
             candidate_record
         )
 
-        save_record(
+        _save_session_record(
             normalized_record
         )
 
@@ -1204,7 +1671,7 @@ def _render_daily_entry() -> None:
     except StorageError as error:
         st.error(
             "Recovery Compass could not save this entry safely. "
-            "Your existing records were not changed."
+            "Your current session was not changed."
         )
 
         st.caption(
@@ -1220,16 +1687,36 @@ def _render_daily_entry() -> None:
     st.rerun()
 
 
-def _build_export_bytes() -> bytes:
-    """Build one validated CSV export and return its bytes."""
+def _build_export_bytes(
+    records: list[dict[str, object]],
+) -> bytes:
+    """Build a validated CSV export from this session's records."""
+
+    if not records:
+        raise StorageError(
+            "There are no Recovery Compass records to export."
+        )
 
     with TemporaryDirectory() as temporary_directory:
+        source_path = (
+            Path(temporary_directory)
+            / "session_records.csv"
+        )
+
         export_path = (
             Path(temporary_directory)
             / "recovery_compass.csv"
         )
 
-        export_records(export_path)
+        _write_records_to_path(
+            records,
+            source_path,
+        )
+
+        export_records(
+            export_path,
+            source_path=source_path,
+        )
 
         return export_path.read_bytes()
 
@@ -1248,7 +1735,7 @@ def _render_data_tools(
         noun = "record" if imported_count == 1 else "records"
 
         st.success(
-            f"Imported {imported_count} {noun} successfully. "
+            f"Imported {imported_count} {noun} into this browser. "
             "Your dashboard has been refreshed."
         )
 
@@ -1298,7 +1785,7 @@ def _render_data_tools(
 
             else:
                 try:
-                    export_bytes = _build_export_bytes()
+                    export_bytes = _build_export_bytes(records)
 
                 except StorageError as error:
                     st.error(
@@ -1356,13 +1843,15 @@ def _render_data_tools(
                             uploaded_file.getvalue()
                         )
 
-                        count = import_records(import_path)
+                        count = _import_session_records(
+                            import_path
+                        )
 
                 except DuplicateDateError as error:
                     st.error(
                         "Import was not applied because at least one date "
-                        "conflicts with data already saved in Recovery "
-                        "Compass. Your existing records were not changed."
+                        "conflicts with data already in this Recovery "
+                        "Compass session. Your current session was not changed."
                     )
                     st.caption(
                         f"Technical detail: {error}"
@@ -1371,7 +1860,7 @@ def _render_data_tools(
                 except StorageError as error:
                     st.error(
                         "Recovery Compass could not import this file safely. "
-                        "Your existing records were not changed."
+                        "Your current session was not changed."
                     )
                     st.caption(
                         f"Technical detail: {error}"
@@ -1380,7 +1869,7 @@ def _render_data_tools(
                 except OSError as error:
                     st.error(
                         "Recovery Compass could not read the selected file. "
-                        "Your existing records were not changed."
+                        "Your current session was not changed."
                     )
                     st.caption(
                         f"Technical detail: {error}"
@@ -1395,20 +1884,14 @@ def _render_data_tools(
 
 
 # ---------------------------------------------------------
-# Load data
+# Load browser-local data
 # ---------------------------------------------------------
 
-try:
-    records = load_records()
-except Exception as exc:
-    st.error(
-        "Recovery Compass could not load the saved records. "
-        "The underlying data file may be unavailable or malformed."
-    )
+_sync_browser_storage()
 
-    st.caption(f"Technical detail: {exc}")
+records = _get_session_records()
 
-    st.stop()
+_render_browser_storage_warning()
 
 
 period_end = date.today()

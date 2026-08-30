@@ -407,3 +407,23 @@ The creator personally ran the regression suite, generated and inspected all
 four synthetic scenarios, restored the working dataset, reviewed repository
 privacy state, and selected session-scoped data plus CSV import/export as the
 v1.0 persistence model.
+
+## 2026-08-30 — Browser-Local Persistence Architecture
+
+AI assistance was used to design and implement the v1.0 browser-local
+persistence architecture, preserving the existing qualified validation,
+CSV, duplicate-date, import, export, analytics, and feedback behavior.
+
+The creator personally tested:
+
+- empty startup isolation;
+- record creation;
+- analytics propagation;
+- browser refresh persistence;
+- tab close/reopen persistence;
+- separate-browser-profile isolation;
+- CSV download and cross-browser import;
+- duplicate-import rejection.
+
+The creator accepted browser-local persistence plus CSV portability as the
+v1.0 public data model.

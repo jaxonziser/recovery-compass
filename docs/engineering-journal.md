@@ -1269,3 +1269,31 @@ work.
 11. Clean deployment test.
 12. Final release qualification.
 13. Public v1.0 deployment.
+
+## 2026-08-30 — Browser-Local v1.0 Persistence
+
+The initial session-state-only architecture correctly isolated users from
+the shared server CSV but lost records after a full browser refresh.
+
+That design was rejected as too fragile for public v1.0.
+
+Recovery Compass was revised to use browser-local persistence while keeping
+Streamlit session state as the active runtime representation. Browser data
+is serialized using the existing Recovery Compass CSV contract and
+revalidated through the qualified storage layer when loaded.
+
+The resulting v1.0 architecture:
+
+- does not use the default server-side user CSV as runtime persistence;
+- does not require accounts or authentication;
+- does not require a cloud database;
+- survives browser refresh and tab close/reopen;
+- isolates records between browser storage contexts;
+- retains CSV download/import as portable backup and transfer.
+
+Browser/site-data clearing can still remove locally stored records.
+Onboarding and Help must therefore explain that users should download data
+when they want a portable backup or need to move records between browsers
+or devices.
+
+**Status: QUALIFIED**

@@ -655,3 +655,56 @@ Generated `data/dashboard_demo.csv` is now explicitly ignored by Git.
 ### Result
 
 **Synthetic Release-State Evaluation — QUALIFIED**
+
+## 2026-08-30 — Browser-Local Persistence Qualification
+
+Recovery Compass v1.0 was converted from shared local-file runtime
+persistence to browser-local persistence.
+
+### Static qualification
+
+PASS — Python compilation
+PASS — 24 automated pytest tests
+PASS — Git whitespace check
+
+### Browser persistence
+
+PASS — fresh browser storage started empty even though the developer
+machine still contained `data/recovery_compass.csv`.
+
+PASS — a synthetic Aug. 30 record was added successfully and propagated
+through analytics, deterministic feedback, charts, and Recent Records.
+
+PASS — the record survived a full browser refresh.
+
+PASS — the record survived tab close and reopen in the same browser.
+
+### Browser isolation
+
+PASS — Chrome Guest opened the same Recovery Compass server with an empty
+dataset while the normal Opera GX browser retained its existing record.
+
+This confirms that separate browser storage contexts do not share the same
+Recovery Compass dataset.
+
+### Import / export portability
+
+PASS — browser-local data downloaded successfully as Recovery Compass CSV.
+
+PASS — the exported CSV imported successfully into a separate Chrome Guest
+browser context.
+
+PASS — attempting to import the same data again was rejected because the
+date already existed.
+
+PASS — duplicate rejection left existing browser data unchanged.
+
+### Local-file isolation
+
+The developer-machine `data/recovery_compass.csv` remained separate from
+the browser-local Aug. 30 record. Public runtime data no longer depends on
+the shared default CSV.
+
+### Result
+
+**Browser-Local v1.0 Data Architecture — QUALIFIED**
