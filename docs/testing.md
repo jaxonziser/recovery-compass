@@ -708,3 +708,18 @@ the shared default CSV.
 ### Result
 
 **Browser-Local v1.0 Data Architecture — QUALIFIED**
+
+## 2026-08-31 — Rest-Day UX + Data Invariant Qualification
+
+Recovery Compass now treats Rest as a cross-field data invariant.
+
+PASS — Rest entry automatically uses 0 workout minutes and 0 perceived exertion.
+PASS — Rest workout controls are disabled in the Streamlit entry workflow.
+PASS — switching to a non-Rest workout restores editable workout controls.
+PASS — a deliberately invalid imported Rest record with nonzero duration and exertion was rejected.
+PASS — failed import left existing browser data unchanged.
+PASS — existing browser-local persistence remained intact.
+PASS — 26 automated pytest tests.
+PASS — Python compilation.
+
+**Rest-Day UX + Data Invariant — QUALIFIED**

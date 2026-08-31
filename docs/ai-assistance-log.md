@@ -427,3 +427,16 @@ The creator personally tested:
 
 The creator accepted browser-local persistence plus CSV portability as the
 v1.0 public data model.
+
+# docs/ai-assistance-log.md
+
+## 2026-08-31 — Rest-Day UX and Final UX Planning
+
+AI assistance was used to identify the correct cross-field Rest invariant,
+implement the validation/UI repair, add automated tests, define runtime
+qualification cases, and formalize the final v1.0 information architecture
+and release criteria.
+
+The creator personally ran the automated regression suite and compilation
+checks and manually qualified Rest behavior, non-Rest behavior, invalid-import
+rejection, atomic failure behavior, and continued browser-local persistence.

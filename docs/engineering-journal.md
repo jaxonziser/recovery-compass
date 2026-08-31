@@ -1297,3 +1297,31 @@ when they want a portable backup or need to move records between browsers
 or devices.
 
 **Status: QUALIFIED**
+
+## 2026-08-31 — Rest Invariant + Final v1.0 UX Freeze
+
+The previous data contract allowed technically valid but semantically
+contradictory records such as Rest with nonzero workout duration or exertion.
+
+Validation now requires Rest records to contain:
+
+- duration_minutes = 0
+- perceived_exertion = 0
+
+The entry interface enforces the same rule by displaying disabled zero-valued
+workout controls when Rest is selected. Imported CSV data is protected by the
+same shared validation rule.
+
+The final v1.0 information architecture is also frozen:
+
+- Overview
+- Add Entry
+- Trends
+- Your Data
+- Help / How It Works
+
+The final UX standard is consumer-facing visual polish, progressive disclosure,
+plain-language usability, and minimal-help operation for a nontechnical
+first-time user.
+
+**Status: Rest behavior qualified; Wednesday UX build contract frozen.**

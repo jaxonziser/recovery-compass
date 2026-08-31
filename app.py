@@ -1,5 +1,5 @@
 """Streamlit dashboard for Recovery Compass v0.1."""
-# Build: 2026-08-30 browser-persistent v1.0 data architecture
+# Build: 2026-08-31 Rest-day invariant + reactive entry UX
 
 from datetime import date, timedelta
 from html import escape
@@ -550,44 +550,58 @@ st.html(
         }
 
         /* -------------------------------------------------
-           Daily-entry form
+           Daily-entry controls
         ------------------------------------------------- */
 
-        div[data-testid="stForm"] label,
-        div[data-testid="stForm"] [data-testid="stWidgetLabel"] p {
+        div[data-testid="stDateInput"] label,
+        div[data-testid="stNumberInput"] label,
+        div[data-testid="stSelectbox"] label,
+        div[data-testid="stDateInput"] [data-testid="stWidgetLabel"] p,
+        div[data-testid="stNumberInput"] [data-testid="stWidgetLabel"] p,
+        div[data-testid="stSelectbox"] [data-testid="stWidgetLabel"] p {
             color: var(--rc-text) !important;
             font-weight: 650 !important;
         }
 
-        div[data-testid="stForm"] [data-testid="stTooltipIcon"] svg {
+        div[data-testid="stDateInput"] [data-testid="stTooltipIcon"] svg,
+        div[data-testid="stNumberInput"] [data-testid="stTooltipIcon"] svg,
+        div[data-testid="stSelectbox"] [data-testid="stTooltipIcon"] svg {
             color: var(--rc-muted) !important;
             fill: var(--rc-muted) !important;
         }
 
-        div[data-testid="stForm"] div[data-testid="stDateInput"] input,
-        div[data-testid="stForm"] div[data-testid="stNumberInput"] input {
+        div[data-testid="stDateInput"] input,
+        div[data-testid="stNumberInput"] input {
             background: #FFFFFF !important;
             color: var(--rc-text) !important;
             border-color: #D5DCE5 !important;
         }
 
-        div[data-testid="stForm"] div[data-testid="stNumberInput"] button {
+        div[data-testid="stNumberInput"] button {
             background: #F7F9FB !important;
             color: var(--rc-muted) !important;
             border-color: #D5DCE5 !important;
         }
 
-        div[data-testid="stForm"] [data-baseweb="select"] > div {
+        div[data-testid="stNumberInput"] input:disabled {
+            background: #F3F5F8 !important;
+            color: #667085 !important;
+            -webkit-text-fill-color: #667085 !important;
+            opacity: 1 !important;
+        }
+
+        div[data-testid="stSelectbox"] [data-baseweb="select"] > div {
             background: #FFFFFF !important;
             color: var(--rc-text) !important;
             border-color: #D5DCE5 !important;
         }
 
-        div[data-testid="stForm"] [data-baseweb="select"] span {
+        div[data-testid="stSelectbox"] [data-baseweb="select"] span {
             color: var(--rc-text) !important;
         }
 
-        div[data-testid="stFormSubmitButton"] button {
+        div[data-testid="stButton"]
+        button[data-testid="stBaseButton-primary"] {
             background: linear-gradient(
                 100deg,
                 var(--rc-navy-900) 0%,
@@ -600,10 +614,12 @@ st.html(
             box-shadow: 0 4px 12px rgba(16, 42, 67, 0.12) !important;
         }
 
-        div[data-testid="stFormSubmitButton"] button:hover {
+        div[data-testid="stButton"]
+        button[data-testid="stBaseButton-primary"]:hover {
             filter: brightness(1.04);
             border-color: rgba(16, 42, 67, 0.28) !important;
         }
+
 
         /* -------------------------------------------------
            Deterministic feedback
@@ -1448,7 +1464,7 @@ def _import_session_records(
     return count
 
 def _render_daily_entry() -> None:
-    """Render the daily-entry form and save one validated record."""
+    """Render reactive daily-entry controls and save one validated record."""
 
     saved_date = st.session_state.pop(
         "recovery_compass_saved_date",
@@ -1456,7 +1472,9 @@ def _render_daily_entry() -> None:
     )
 
     if saved_date is not None:
-        readable_date = date.fromisoformat(saved_date).strftime(
+        readable_date = date.fromisoformat(
+            saved_date
+        ).strftime(
             "%B %d, %Y"
         )
 
@@ -1488,39 +1506,63 @@ def _render_daily_entry() -> None:
 
     with st.container(border=True):
 
-        with st.form(
-            "daily_entry_form",
-            clear_on_submit=False,
-        ):
+        row_one = st.columns(
+            2,
+            gap="medium",
+        )
 
-            row_one = st.columns(
-                2,
-                gap="medium",
+        with row_one[0]:
+            entry_date = st.date_input(
+                "Date",
+                value=date.today(),
+                help="Choose the day this entry describes.",
+                key="recovery_compass_entry_date",
             )
 
-            with row_one[0]:
-                entry_date = st.date_input(
-                    "Date",
-                    value=date.today(),
-                    help="Choose the day this entry describes.",
-                )
+        with row_one[1]:
+            workout_type = st.selectbox(
+                "Workout Type",
+                options=list(
+                    WORKOUT_TYPES.values()
+                ),
+                help=(
+                    "Choose Rest if you did not complete "
+                    "a workout that day."
+                ),
+                key="recovery_compass_workout_type",
+            )
 
-            with row_one[1]:
-                workout_type = st.selectbox(
-                    "Workout Type",
-                    options=list(WORKOUT_TYPES.values()),
+        is_rest_day = (
+            workout_type == WORKOUT_TYPES["rest"]
+        )
+
+        row_two = st.columns(
+            2,
+            gap="medium",
+        )
+
+        with row_two[0]:
+            if is_rest_day:
+                st.number_input(
+                    "Workout Duration (minutes)",
+                    min_value=0,
+                    max_value=300,
+                    value=0,
+                    step=1,
+                    disabled=True,
                     help=(
-                        "Choose Rest if you did not complete "
-                        "a workout that day."
+                        "Rest days automatically record "
+                        "0 workout minutes."
+                    ),
+                    key=(
+                        "recovery_compass_rest_"
+                        "duration_display"
                     ),
                 )
 
-            row_two = st.columns(
-                2,
-                gap="medium",
-            )
+                duration_minutes = 0
 
-            with row_two[0]:
+            else:
                 duration_minutes = st.number_input(
                     "Workout Duration (minutes)",
                     min_value=0,
@@ -1529,12 +1571,34 @@ def _render_daily_entry() -> None:
                     step=1,
                     placeholder="Example: 45",
                     help=(
-                        "Enter 0 on a rest day. "
-                        "Maximum: 300 minutes."
+                        "Enter the number of minutes "
+                        "you trained. Maximum: 300."
+                    ),
+                    key="recovery_compass_duration",
+                )
+
+        with row_two[1]:
+            if is_rest_day:
+                st.number_input(
+                    "Perceived Exertion",
+                    min_value=0,
+                    max_value=10,
+                    value=0,
+                    step=1,
+                    disabled=True,
+                    help=(
+                        "Rest days automatically record "
+                        "0 perceived exertion."
+                    ),
+                    key=(
+                        "recovery_compass_rest_"
+                        "exertion_display"
                     ),
                 )
 
-            with row_two[1]:
+                perceived_exertion = 0
+
+            else:
                 perceived_exertion = st.number_input(
                     "Perceived Exertion",
                     min_value=0,
@@ -1546,63 +1610,68 @@ def _render_daily_entry() -> None:
                         "0 means no effort. "
                         "10 means maximum perceived effort."
                     ),
+                    key="recovery_compass_exertion",
                 )
 
-            row_three = st.columns(
-                3,
-                gap="medium",
+        row_three = st.columns(
+            3,
+            gap="medium",
+        )
+
+        with row_three[0]:
+            sleep_hours = st.number_input(
+                "Sleep Hours",
+                min_value=0.0,
+                max_value=16.0,
+                value=None,
+                step=0.1,
+                placeholder="Example: 7.5",
+                help=(
+                    "Enter the approximate number of "
+                    "hours you slept."
+                ),
+                key="recovery_compass_sleep",
             )
 
-            with row_three[0]:
-                sleep_hours = st.number_input(
-                    "Sleep Hours",
-                    min_value=0.0,
-                    max_value=16.0,
-                    value=None,
-                    step=0.1,
-                    placeholder="Example: 7.5",
-                    help=(
-                        "Enter the approximate number of "
-                        "hours you slept."
-                    ),
-                )
-
-            with row_three[1]:
-                mood_choice = st.selectbox(
-                    "Mood Rating",
-                    options=[
-                        "Not recorded",
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        "5",
-                    ],
-                    help=(
-                        "Optional. 1 is the lowest rating "
-                        "and 5 is the highest."
-                    ),
-                )
-
-            with row_three[2]:
-                study_hours = st.number_input(
-                    "Study Hours",
-                    min_value=0.0,
-                    max_value=16.0,
-                    value=None,
-                    step=0.1,
-                    placeholder="Example: 2.0",
-                    help=(
-                        "Enter time spent studying or doing "
-                        "academic work."
-                    ),
-                )
-
-            submitted = st.form_submit_button(
-                "Save Entry",
-                type="primary",
-                width="stretch",
+        with row_three[1]:
+            mood_choice = st.selectbox(
+                "Mood Rating",
+                options=[
+                    "Not recorded",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                ],
+                help=(
+                    "Optional. 1 is the lowest rating "
+                    "and 5 is the highest."
+                ),
+                key="recovery_compass_mood",
             )
+
+        with row_three[2]:
+            study_hours = st.number_input(
+                "Study Hours",
+                min_value=0.0,
+                max_value=16.0,
+                value=None,
+                step=0.1,
+                placeholder="Example: 2.0",
+                help=(
+                    "Enter time spent studying or doing "
+                    "academic work."
+                ),
+                key="recovery_compass_study",
+            )
+
+        submitted = st.button(
+            "Save Entry",
+            type="primary",
+            width="stretch",
+            key="recovery_compass_save_entry",
+        )
 
     if not submitted:
         return
@@ -1637,7 +1706,9 @@ def _render_daily_entry() -> None:
         ),
     }
 
-    errors = validate_record(candidate_record)
+    errors = validate_record(
+        candidate_record
+    )
 
     if errors:
         st.error(
@@ -1646,7 +1717,9 @@ def _render_daily_entry() -> None:
         )
 
         for error in errors:
-            st.markdown(f"- {error}")
+            st.markdown(
+                f"- {error}"
+            )
 
         return
 
@@ -1671,7 +1744,7 @@ def _render_daily_entry() -> None:
     except StorageError as error:
         st.error(
             "Recovery Compass could not save this entry safely. "
-            "Your current session was not changed."
+            "Your current browser data was not changed."
         )
 
         st.caption(

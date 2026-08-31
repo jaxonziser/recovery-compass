@@ -146,6 +146,43 @@ def validate_record(record: dict[str, str]) -> list[str]:
         errors=errors,
     )
 
+    # A Rest record cannot contain workout activity.
+    # This cross-field invariant protects manual entry, imported CSV data,
+    # browser-local data, and any future pathway using shared validation.
+    if workout_value.lower() == "rest":
+        duration_value = _clean(
+            record.get("duration_minutes")
+        )
+        exertion_value = _clean(
+            record.get("perceived_exertion")
+        )
+
+        try:
+            if (
+                duration_value != ""
+                and int(duration_value) != 0
+            ):
+                errors.append(
+                    "Workout Duration must be 0 when "
+                    "Workout Type is Rest."
+                )
+        except ValueError:
+            # The normal integer validator already reports malformed values.
+            pass
+
+        try:
+            if (
+                exertion_value != ""
+                and int(exertion_value) != 0
+            ):
+                errors.append(
+                    "Perceived Exertion must be 0 when "
+                    "Workout Type is Rest."
+                )
+        except ValueError:
+            # The normal integer validator already reports malformed values.
+            pass
+
     _validate_decimal_field(
         record,
         "sleep_hours",

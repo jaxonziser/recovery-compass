@@ -99,3 +99,36 @@ def test_missing_required_values_are_rejected():
     )
 
     assert len(errors) >= 3
+
+def test_rest_record_requires_zero_duration_and_exertion():
+    errors = validate_record(
+        _valid_record(
+            workout_type="Rest",
+            duration_minutes="50",
+            perceived_exertion="6",
+        )
+    )
+
+    assert (
+        "Workout Duration must be 0 when "
+        "Workout Type is Rest."
+    ) in errors
+
+    assert (
+        "Perceived Exertion must be 0 when "
+        "Workout Type is Rest."
+    ) in errors
+
+
+def test_valid_rest_record_normalizes_with_zero_workout_values():
+    result = normalize_record(
+        _valid_record(
+            workout_type="Rest",
+            duration_minutes="0",
+            perceived_exertion="0",
+        )
+    )
+
+    assert result["workout_type"] == "Rest"
+    assert result["duration_minutes"] == 0
+    assert result["perceived_exertion"] == 0
