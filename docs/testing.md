@@ -723,3 +723,118 @@ PASS — 26 automated pytest tests.
 PASS — Python compilation.
 
 **Rest-Day UX + Data Invariant — QUALIFIED**
+
+## 2026-09-02 — Final v1.0 UX Internal Qualification
+
+Recovery Compass completed the final Wednesday internal qualification pass after
+the V10.0.15 UX state was accepted.
+
+### Automated and Static Gates
+
+`python -m pytest -q`
+
+**PASS — 26 of 26 automated tests passed.**
+
+Python compilation:
+
+**PASS**
+
+`git diff --check`
+
+**PASS**
+
+The Git whitespace check produced no blocking whitespace errors. Any normal
+working-copy line-ending warning did not represent a failed gate.
+
+### Final Internal Smoke Pass
+
+The finished application was manually reviewed across the release-critical
+experience.
+
+**PASS — First-run onboarding**
+
+- Welcome/tutorial experience rendered and could be completed.
+- The application explained its purpose and basic workflow.
+- Browser-local storage and CSV backup/restore behavior were communicated.
+
+**PASS — Navigation**
+
+- Overview was accessible.
+- Add Entry was accessible.
+- Trends was accessible.
+- Your Data was accessible.
+- Help / How It Works was accessible.
+- Navigation remained usable after moving between sections.
+
+**PASS — Help / How It Works**
+
+- Help remained available after first-run onboarding.
+- Metric and data-behavior explanations were present.
+- Browser-local persistence limitations were explained.
+- CSV backup and restore guidance was available.
+
+**PASS — Daily entry / Rest behavior**
+
+- Rest retained 0 workout minutes and 0 perceived exertion.
+- Contradictory Rest workout input remained prevented.
+- Non-Rest workout types retained normal editable workout behavior.
+- The final UX did not weaken the previously qualified validation invariant.
+
+**PASS — Browser-local data and portability presentation**
+
+- Browser-local persistence was represented as the v1.0 data model.
+- Backup/download guidance was present.
+- Restore/import guidance was present.
+
+**PASS — Appearance modes**
+
+- Light mode rendered.
+- Dark mode rendered.
+- System mode rendered.
+- The final Light-mode repair pass resolved the release-blocking presentation
+  defects found during iteration.
+
+**PASS — Responsive behavior**
+
+- The application remained usable at narrower browser widths.
+- Core navigation, entry, dashboard, and explanatory content remained
+  accessible.
+
+**PASS — Data-state presentation**
+
+- Populated states remained functional.
+- Sparse/empty states remained supported.
+- Formal comparison states remained governed by the existing complete-period
+  rule.
+- Missing data remained distinct from legitimate zero values.
+
+**PASS — Branding**
+
+- The final unified Recovery Compass logo/identity was used consistently.
+
+### Final Classification
+
+No release blocker remained after the internal smoke pass.
+
+Two nonblocking visual issues were recorded:
+
+- small gray square artifacts can appear in populated numeric inputs;
+- unselected Mood hover currently uses teal rather than the preferred lighter
+  amber treatment.
+
+Both are **POLISH IF TIME** because they do not interfere with required
+functionality or comprehension.
+
+### Qualification Result
+
+**Automated tests: PASS — 26/26**
+
+**Python compilation: PASS**
+
+**Git whitespace check: PASS**
+
+**Internal end-to-end smoke test: PASS**
+
+**Release blockers: 0**
+
+**Final Wednesday UX State — QUALIFIED**

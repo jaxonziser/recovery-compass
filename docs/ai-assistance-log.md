@@ -440,3 +440,54 @@ and release criteria.
 The creator personally ran the automated regression suite and compilation
 checks and manually qualified Rest behavior, non-Rest behavior, invalid-import
 rejection, atomic failure behavior, and continued browser-local persistence.
+
+## 2026-09-02 — Final v1.0 UX Build and Internal Release Qualification
+
+AI assistance was used as a technical implementation, UI/UX iteration, and
+release-qualification collaborator during the final Wednesday build.
+
+AI assistance included:
+
+- translating the frozen v1.0 information architecture into the final Streamlit
+  interface;
+- iterating the Overview, Add Entry, Trends, Your Data, and Help / How It Works
+  navigation;
+- implementing and refining first-run onboarding and tutorial behavior;
+- integrating plain-language browser-local persistence, backup, restore, and
+  CSV portability guidance;
+- preserving the qualified Rest/Workout invariant inside the redesigned entry
+  experience;
+- implementing and troubleshooting Light, Dark, and System appearance modes;
+- identifying Light-mode contrast and component-consistency defects and
+  proposing targeted repairs;
+- refining responsive behavior for narrower browser widths;
+- consolidating branding around the final unified Recovery Compass logo;
+- reviewing populated, sparse, empty, and comparison UI states for consistency;
+- helping diagnose visual defects discovered during screenshot/runtime review;
+- defining the final internal smoke-test checklist and release-blocker
+  classification;
+- helping distinguish release-blocking defects from optional visual polish.
+
+The creator personally:
+
+- reviewed each major interface revision and approved or rejected the visual and
+  interaction direction;
+- ran Recovery Compass locally throughout the final UX iteration;
+- tested onboarding, navigation, Help, data-entry, browser-storage messaging,
+  backup/restore, Rest/Workout behavior, and comparison states;
+- reviewed Light, Dark, and System appearance behavior;
+- inspected responsive layouts and requested corrections where the interface
+  did not hold together;
+- approved the final unified logo and overall visual identity;
+- ran the automated pytest suite and confirmed 26 of 26 tests passed;
+- ran Python compilation successfully;
+- ran `git diff --check` successfully;
+- completed the final internal smoke pass;
+- classified the remaining numeric-input artifact and Mood-hover color issue as
+  optional polish rather than release blockers;
+- accepted the V10.0.15 state as the completed Wednesday UX checkpoint.
+
+No claim is made that the final Streamlit UX implementation was independently
+coded without AI assistance. The creator remained responsible for product
+decisions, visual acceptance, local execution, test execution, defect
+classification, and final qualification.

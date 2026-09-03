@@ -1325,3 +1325,157 @@ plain-language usability, and minimal-help operation for a nontechnical
 first-time user.
 
 **Status: Rest behavior qualified; Wednesday UX build contract frozen.**
+
+## 2026-09-02 — Final v1.0 UX Build and Wednesday Qualification
+
+### Objective
+
+Complete the frozen Recovery Compass v1.0 user experience without expanding the
+approved MVP scope, then perform the internal release-quality gate required
+before fresh-eyes testing and deployment work.
+
+The final UX work built on the already-qualified validation, storage,
+browser-local persistence, analytics, deterministic feedback, and Rest-day data
+invariant rather than changing those underlying contracts.
+
+### Final Information Architecture
+
+The frozen five-part structure was implemented as the public-facing navigation:
+
+- Overview
+- Add Entry
+- Trends
+- Your Data
+- Help / How It Works
+
+The purpose of this structure is progressive disclosure. A first-time user
+should not need to understand the entire application before recording data or
+reading the dashboard.
+
+### First-Run Onboarding
+
+The final interface includes a first-run welcome/tutorial experience that
+introduces:
+
+- what Recovery Compass records;
+- how the Overview and Trends pages use the recorded data;
+- where to add a daily entry;
+- how Help / How It Works can be reopened later;
+- that public v1.0 data is stored in the current browser rather than in a user
+  account;
+- why CSV download should be used as a portable backup;
+- how downloaded Recovery Compass CSV data can be restored through import.
+
+The browser-storage explanation is treated as a product requirement rather than
+a hidden technical limitation.
+
+### Data Entry and Rest Behavior
+
+The redesigned Add Entry experience preserves the previously qualified
+cross-field Rest invariant.
+
+When Rest is selected:
+
+- workout duration remains 0;
+- perceived exertion remains 0;
+- contradictory workout controls are not editable.
+
+Non-Rest workout types restore the normal workout controls.
+
+The final UX redesign therefore changes presentation and workflow without
+weakening the underlying validation contract.
+
+### Help and Data Portability
+
+Help / How It Works remains permanently accessible after onboarding.
+
+The user-facing explanation covers:
+
+- what each recorded field means;
+- how current-period metrics are calculated;
+- when formal previous-period comparison becomes available;
+- the distinction between missing data and numerical zero;
+- browser-local persistence;
+- CSV download as backup/transfer;
+- CSV import as restore/transfer.
+
+### Appearance and Visual System
+
+The final build supports:
+
+- Light
+- Dark
+- System
+
+The Light-mode pass required additional repair because components that were
+acceptable in the darker presentation did not automatically preserve sufficient
+contrast or visual consistency on a light surface.
+
+The final visual pass also unified the Recovery Compass logo and branding across
+the application instead of allowing separate page-level identity treatments.
+
+### Responsive Behavior
+
+The interface was reviewed at narrower browser widths and adjusted so navigation,
+content hierarchy, metric presentation, entry controls, and explanatory content
+remain usable without depending on one desktop viewport.
+
+### Iteration History
+
+The final Wednesday build progressed through multiple interface revisions from
+the V8-era UX state through V10.0.15.
+
+The important result was not the version count itself. The successive revisions
+were used to remove problems exposed by actual runtime and screenshot review,
+including:
+
+- onboarding/navigation clarity;
+- excessive information density;
+- inconsistent Help and persistence messaging;
+- Light-mode defects;
+- theme consistency;
+- branding/logo inconsistency;
+- responsive-layout issues;
+- presentation of populated, sparse, empty, and comparison states.
+
+The final V10.0.15 state became the accepted Wednesday checkpoint.
+
+### Final Internal Qualification
+
+The final hard gate passed:
+
+- `python -m pytest -q` — PASS, 26 of 26 tests;
+- Python compilation — PASS;
+- `git diff --check` — PASS;
+- full internal smoke pass — PASS.
+
+The smoke pass covered the completed product experience, including onboarding,
+navigation, Help, browser-local storage messaging, backup/restore,
+Rest/Workout behavior, Light/Dark/System appearance, responsive behavior,
+comparison states, and the unified logo.
+
+### Remaining Observations
+
+Two visual observations remain classified as optional polish:
+
+1. Populated numeric inputs can display small gray square artifacts beside some
+   entered values.
+2. The hover treatment for an unselected Mood choice uses teal and would be more
+   semantically consistent as a lighter amber treatment distinct from the
+   selected amber state.
+
+Neither issue blocks data entry, validation, saving, analytics, navigation, or
+other required v1.0 behavior.
+
+They are therefore recorded as **POLISH IF TIME**, not release blockers.
+
+### Result
+
+**Final Wednesday UX Build — QUALIFIED**
+
+**Release blockers found at the internal Wednesday gate: none.**
+
+Recovery Compass now has the complete intended v1.0 UX foundation. The next
+release phase is fresh-eyes testing, correction of any genuinely
+test-discovered release blockers, final public documentation, deployment, and
+deployment verification rather than additional optional feature development.
