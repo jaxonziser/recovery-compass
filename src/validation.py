@@ -138,10 +138,12 @@ def validate_record(record: dict[str, str]) -> list[str]:
         errors=errors,
     )
 
+    # Rest uses the internal sentinel 0. Workout days use the user-facing 1–10 scale.
+    exertion_minimum = 0 if workout_value.lower() == "rest" else 1
     _validate_integer_field(
         record,
         "perceived_exertion",
-        minimum=0,
+        minimum=exertion_minimum,
         maximum=10,
         errors=errors,
     )

@@ -428,8 +428,6 @@ The creator personally tested:
 The creator accepted browser-local persistence plus CSV portability as the
 v1.0 public data model.
 
-# docs/ai-assistance-log.md
-
 ## 2026-08-31 — Rest-Day UX and Final UX Planning
 
 AI assistance was used to identify the correct cross-field Rest invariant,
@@ -491,3 +489,39 @@ No claim is made that the final Streamlit UX implementation was independently
 coded without AI assistance. The creator remained responsible for product
 decisions, visual acceptance, local execution, test execution, defect
 classification, and final qualification.
+
+## 2026-09-04 — Fresh-Eyes Release Repair and v1.0 Documentation
+
+AI assistance was used as a release-engineering, implementation, debugging, UX-review, and documentation collaborator during the final Friday v1.0 gate.
+
+AI assistance included:
+
+- defining the final regression checklist and fresh-eyes no-coaching test procedure;
+- interpreting external tester feedback and separating a small v1.0 usability correction from larger post-v1.0 feature ideas;
+- revising the Home Training card from total weekly minutes to average workout duration across actual Workout days, while retaining total minutes as supporting context;
+- adding explicit Home period-average language;
+- diagnosing the gray-square number-input artifact and targeting the current Streamlit clear-value control;
+- refining Mood hover treatment to use a lighter amber state distinct from selected amber;
+- defining selected-date semantics for previous-night sleep and end-of-day logging guidance;
+- separating blank Perceived Exertion validation from out-of-range validation and preserving the Rest-day internal zero invariant;
+- updating tests for the clarified Workout-day 1–10 exertion rule;
+- reviewing the final release screenshots and terminal evidence;
+- drafting the final public README, release notes, known-limitations language, storage/privacy explanation, testing record, engineering-journal entry, and documentation consistency addenda.
+
+The creator personally:
+
+- ran the Friday opening internal regression and confirmed 26 of 26 tests passed;
+- ran Python compilation and Git whitespace checks;
+- completed the full manual smoke regression;
+- recruited and observed an unfamiliar tester using Recovery Compass without coaching;
+- collected and interpreted the tester's feedback;
+- approved the Training-card correction and explicitly deferred larger goal/feedback features from the frozen v1.0 scope;
+- replaced and ran each release-polish build locally;
+- visually verified Home, Light/Dark number-input controls, Mood hover/selection states, sleep/date guidance, and final formatting;
+- directly tested missing and invalid Perceived Exertion behavior, including confirming that `45` does not save;
+- reran the full 26-test suite after the final repair;
+- reran Python compilation successfully;
+- reran `git diff --check` successfully with exit code 0;
+- remained responsible for final product acceptance and public-release decisions.
+
+No claim is made that the final release-candidate implementation or documentation was independently written without AI assistance. AI assistance is documented so the repository distinguishes generated/drafted technical help from the creator's product decisions, testing, verification, and acceptance work.

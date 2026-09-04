@@ -497,3 +497,73 @@ The initial schema is complete when:
 - Added duplicate-date handling.
 - Added import and export expectations.
 - Marked discovery-interview evidence as pending.
+
+## Final v1.0 Implementation Addendum — 2026-09-04
+
+This file remains the historical **v0.1 schema freeze**. The final v1.0 implementation preserves the same seven stored CSV fields and column order but qualified several behaviors more precisely during development and release testing.
+
+### Perceived Exertion
+
+The original schema described a general 0–10 range. Final v1.0 behavior is more specific:
+
+- **Workout days:** `perceived_exertion` is required and must be a whole number from **1 through 10**.
+- **Rest days:** Recovery Compass stores `perceived_exertion = 0` automatically as an internal Rest sentinel.
+
+This prevents a Workout record from using `0` while preserving the already-qualified Rest invariant.
+
+### Rest Invariant
+
+A final v1.0 Rest record must contain:
+
+```text
+workout_type = Rest
+duration_minutes = 0
+perceived_exertion = 0
+```
+
+The shared validator protects this rule for manual entry, browser-local data hydration, CSV backup/restore, and any other path that uses the common storage layer.
+
+### Sleep Date Semantics
+
+`sleep_hours` represents the main sleep period that **ended on the record date**.
+
+Example:
+
+```text
+Record date: 2026-09-04
+Sleep value: main sleep period from the night of Sep 3 into the morning of Sep 4
+```
+
+The recommended logging time is near the end of the selected day, once training and study are mostly finished.
+
+### Duplicate-Date Behavior
+
+The original conceptual schema considered a future replace/cancel decision. Final public v1.0 instead uses an append-only rule:
+
+- one validated stored record per calendar date;
+- duplicate dates are rejected;
+- no edit/delete/replace workflow is exposed in the public interface.
+
+Safe mutation remains post-v1.0 because it requires separate destructive-action, backup, duplicate-date, and recovery qualification.
+
+### Public Persistence Model
+
+The original storage implementation was file-backed CSV. Final public v1.0 uses:
+
+- browser-local storage for persistent per-browser/profile history;
+- Streamlit session state as the active runtime representation;
+- the same frozen CSV schema and shared validation layer for backup/restore portability;
+- no Recovery Compass account or project cloud database.
+
+The development `data/recovery_compass.csv` path remains tooling/history rather than public runtime persistence.
+
+### Restore Semantics
+
+Restore/import is all-or-nothing:
+
+- the entire incoming CSV is validated before current records change;
+- malformed or schema-incompatible files are rejected;
+- if any incoming date duplicates an existing date, the restore is rejected;
+- no partial import occurs after a validation or duplicate-date failure.
+
+These v1.0 implementation clarifications supersede conflicting conceptual statements in the original v0.1 design text while preserving that text as project history.

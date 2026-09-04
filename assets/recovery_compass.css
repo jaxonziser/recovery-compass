@@ -1660,11 +1660,16 @@ div[data-testid="stFileUploaderDropzoneInstructions"] { display:none !important;
     color:inherit !important;
     fill:currentColor !important;
 }
-.st-key-rc_workout_choice_v10_0_8 [class*="st-key-rc_workout_choice_idle_"] button:hover,
-.st-key-rc_mood_choice_v10_0_8 [class*="st-key-rc_mood_choice_idle_"] button:hover {
+.st-key-rc_workout_choice_v10_0_8 [class*="st-key-rc_workout_choice_idle_"] button:hover {
     background:color-mix(in srgb,var(--rc-brand-soft) 70%,var(--rc-surface)) !important;
     border-color:color-mix(in srgb,var(--rc-brand) 46%,var(--rc-border)) !important;
     color:var(--rc-brand) !important;
+}
+.st-key-rc_mood_choice_v10_0_8 [class*="st-key-rc_mood_choice_idle_"] button:hover {
+    background:color-mix(in srgb,var(--rc-mood-soft) 42%,var(--rc-surface)) !important;
+    border-color:color-mix(in srgb,var(--rc-mood) 38%,var(--rc-border)) !important;
+    color:var(--rc-mood) !important;
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc-mood) 10%,transparent) !important;
 }
 .st-key-rc_workout_choice_v10_0_8 [class*="st-key-rc_workout_choice_active_"] button {
     background:var(--rc-training-soft) !important;
@@ -2293,4 +2298,137 @@ div[data-testid="stFileUploaderDropzoneInstructions"] { display:none !important;
         backdrop-filter:none !important;
         -webkit-backdrop-filter:none !important;
     }
+}
+
+
+/* ---------- V10.0.16 fresh-eyes number-input artifact repair ---------- */
+/* Streamlit 1.58+ has a confirmed number-input styling regression where an
+   internal gap can expose the underlying background. Chrome's native number
+   spinner can also leak through custom theming. Recovery Compass keeps the
+   Streamlit +/- controls, removes the browser spinner, and paints the BaseWeb
+   input wrapper continuously so populated fields do not develop a gray square. */
+[data-testid="stMain"] [data-testid="stNumberInput"] [data-baseweb="input"],
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] [data-baseweb="input"],
+[data-testid="stMain"] [data-testid="stNumberInput"] [data-baseweb="input"] > div,
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] [data-baseweb="input"] > div {
+    background:var(--rc-surface-2) !important;
+}
+[data-testid="stMain"] [data-testid="stNumberInput"] input[type="number"],
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] input[type="number"] {
+    appearance:textfield !important;
+    -moz-appearance:textfield !important;
+}
+[data-testid="stMain"] [data-testid="stNumberInput"] input[type="number"]::-webkit-inner-spin-button,
+[data-testid="stMain"] [data-testid="stNumberInput"] input[type="number"]::-webkit-outer-spin-button,
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] input[type="number"]::-webkit-inner-spin-button,
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance:none !important;
+    appearance:none !important;
+    margin:0 !important;
+    display:none !important;
+}
+
+
+/* ---------- V10.0.17 release clarity ---------- */
+/* Home makes the averaging basis explicit without adding another large panel. */
+.rc-average-context {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:.45rem .65rem;
+    margin-top:.6rem;
+}
+.rc-average-context > span {
+    display:inline-flex;
+    align-items:center;
+    min-height:1.7rem;
+    padding:.26rem .62rem;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--rc-brand) 30%,var(--rc-border));
+    background:color-mix(in srgb,var(--rc-brand-soft) 64%,var(--rc-surface));
+    color:var(--rc-brand);
+    font-size:.69rem;
+    font-weight:850;
+    letter-spacing:.055em;
+    text-transform:uppercase;
+}
+.rc-average-context > small {
+    color:var(--rc-muted);
+    font-size:.78rem;
+    line-height:1.4;
+}
+
+/* Log timing/sleep semantics are important because v1.0 records are append-only. */
+.rc-log-timing-note {
+    margin:.58rem 0 1rem;
+    padding:.72rem .85rem;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--rc-sleep) 26%,var(--rc-border));
+    background:color-mix(in srgb,var(--rc-sleep-soft) 48%,var(--rc-surface));
+    color:var(--rc-muted);
+    font-size:.78rem;
+    line-height:1.5;
+}
+.rc-log-timing-note strong { color:var(--rc-text); font-weight:780; }
+
+/* Streamlit 1.59's React-Aria number input exposes a dedicated clear-value
+   control when a field contains a value. Recovery Compass styles that control
+   deliberately as a small theme-aware X circle instead of allowing the native
+   icon/background to render as a gray square under custom theming. */
+[data-testid="stMain"] [data-testid="stNumberInput"] button[aria-label="Clear value"],
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] button[aria-label="Clear value"] {
+    width:1.75rem !important;
+    min-width:1.75rem !important;
+    height:1.75rem !important;
+    min-height:1.75rem !important;
+    padding:0 !important;
+    margin:0 .22rem !important;
+    border-radius:999px !important;
+    border:1px solid var(--rc-border-strong) !important;
+    background:color-mix(in srgb,var(--rc-surface) 86%,var(--rc-surface-2)) !important;
+    color:var(--rc-muted) !important;
+    display:grid !important;
+    place-items:center !important;
+    box-shadow:none !important;
+    line-height:1 !important;
+}
+[data-testid="stMain"] [data-testid="stNumberInput"] button[aria-label="Clear value"] > *,
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] button[aria-label="Clear value"] > * {
+    display:none !important;
+}
+[data-testid="stMain"] [data-testid="stNumberInput"] button[aria-label="Clear value"]::before,
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] button[aria-label="Clear value"]::before {
+    content:"×";
+    display:block;
+    color:currentColor;
+    font-size:1.08rem;
+    font-weight:650;
+    line-height:1;
+    transform:translateY(-.02rem);
+}
+[data-testid="stMain"] [data-testid="stNumberInput"] button[aria-label="Clear value"]:hover,
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInput"] button[aria-label="Clear value"]:hover {
+    background:var(--rc-brand-soft) !important;
+    border-color:color-mix(in srgb,var(--rc-brand) 46%,var(--rc-border)) !important;
+    color:var(--rc-brand) !important;
+}
+
+/* Paint the current React-Aria number-input structure continuously. The old
+   BaseWeb selector remains harmless for compatibility, but this is the DOM
+   actually used by current Streamlit builds. */
+[data-testid="stMain"] [data-testid="stNumberInputContainer"],
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInputContainer"] {
+    background:var(--rc-surface-2) !important;
+    border-color:var(--rc-border) !important;
+}
+[data-testid="stMain"] [data-testid="stNumberInputField"],
+[data-testid="stMainBlockContainer"] [data-testid="stNumberInputField"] {
+    background:transparent !important;
+    color:var(--rc-text) !important;
+    -webkit-text-fill-color:var(--rc-text) !important;
+}
+
+@media (max-width:700px) {
+    .rc-average-context { align-items:flex-start; flex-direction:column; }
+    .rc-log-timing-note { font-size:.76rem; }
 }

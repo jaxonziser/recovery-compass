@@ -181,3 +181,42 @@ The project creator serves as **Creator and Product Lead**, with responsibility 
 - accepting or rejecting completed features
 
 AI serves as a technical instructor, architect, and implementation collaborator. Significant AI assistance is documented separately in `docs/ai-assistance-log.md`.
+
+## Final v1.0 Implementation Addendum — 2026-09-04
+
+The preceding MVP freeze is retained as the historical scope-control document. The final v1.0 product completed the frozen core and added release-quality presentation/interaction work without expanding into the explicitly deferred medical, social, cloud-account, or coaching categories.
+
+### Final v1.0 Product State
+
+The completed release candidate includes:
+
+- consumer-facing Home, Log a Day, Insights, Data & Backup, and Help navigation;
+- a first-visit four-step guided tour plus replay from Help;
+- browser-local persistence that survives refresh/tab close in the same profile;
+- CSV backup and atomic restore between browser profiles/devices;
+- Light, System, and Dark appearance modes;
+- Rest/Workout conditional daily entry with the protected Rest zero invariant;
+- explicit previous-night sleep semantics and end-of-day logging guidance;
+- seven-day coverage, period averages, focused charts, deterministic factual observations, recent records, and complete-period comparison;
+- responsive and accessibility-oriented interface behavior;
+- automated pytest regression plus manual browser, data-state, and fresh-eyes qualification.
+
+### Final v1.0 Validation Clarification
+
+Workout-day Perceived Exertion is a required whole number from **1–10**. Rest days use internal value **0** automatically. This is a qualified refinement of the original general 0–10 statement.
+
+### Final v1.0 Persistence Clarification
+
+The public product does not use the shared developer-machine CSV as its runtime persistence model. Persistent user history is browser-local. The frozen CSV schema remains the backup/restore and validation portability contract.
+
+### Fresh-Eyes Product Direction
+
+The final no-coaching tester validated that the core product is understandable and usable, but raised a useful long-term question: what additional value does the user receive for continued record keeping?
+
+The following are therefore recorded as **post-v1.0 candidates**, not release-gate additions:
+
+- optional user-defined weekly intentions/goals that remain neutral, non-punitive, and user-controlled;
+- richer deterministic feedback that surfaces meaningful changes and patterns without medical judgment, causation claims, or predictions;
+- safe edit/delete record correction after a dedicated mutation/backup/recovery qualification cycle.
+
+The release freeze remains in force: these ideas do not change the v1.0 contract.

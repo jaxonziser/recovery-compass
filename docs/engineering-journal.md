@@ -1,5 +1,7 @@
 # Recovery Compass Engineering Journal
 
+> **Portfolio note:** This file is the chronological development record for Recovery Compass. For a concise project overview, start with the repository `README.md` and `RELEASE_NOTES.md`. For testing evidence, see `docs/testing.md`. For a detailed disclosure of AI assistance and creator verification, see `docs/ai-assistance-log.md`.
+
 ## 2026-07-31 — Daily-Record Validation and Normalization
 
 ### Objective
@@ -1479,3 +1481,83 @@ Recovery Compass now has the complete intended v1.0 UX foundation. The next
 release phase is fresh-eyes testing, correction of any genuinely
 test-discovered release blockers, final public documentation, deployment, and
 deployment verification rather than additional optional feature development.
+
+## 2026-09-04 — Final v1.0 Release Gate and Fresh-Eyes Repair
+
+### Objective
+
+Complete the Friday release gate without reopening feature development: rerun the full internal regression, observe an unfamiliar user with no coaching, fix only test-discovered release issues, finish public documentation, and leave deployment as the final release action.
+
+### Internal Regression
+
+The Friday opening gate passed before any new repair work:
+
+- repository was on `main` and up to date with `origin/main` at the committed Wednesday checkpoint;
+- `python -m pytest -q` — PASS, 26 of 26 tests;
+- Python compilation — PASS;
+- `git diff --check` — PASS;
+- full saved-browser and fresh-browser smoke regression — PASS.
+
+The smoke pass reconfirmed daily entry, Rest/Workout behavior, duplicate rejection, refresh persistence, browser isolation, backup/restore, Home, Insights, navigation, Help, appearance modes, onboarding, sparse/complete states, and comparison behavior.
+
+### Fresh-Eyes External Test
+
+An unfamiliar tester used Recovery Compass without coaching and completed the required release-gate tasks successfully. The tester could explain the product, record a day, find sleep/coverage information, use Help, download a backup, and explain where the records live.
+
+The tester described the application as easy to use and attractive.
+
+Two observations mattered:
+
+1. Home used averages for Sleep, Mood, and Study but showed total weekly Training minutes. The tester found that mental model inconsistent.
+2. The tester wanted a clearer long-term return for continued record keeping, such as optional weekly intentions/goals or more useful personalized feedback.
+
+### Release-Scope Decisions
+
+The Training-card inconsistency was accepted as a small v1.0 usability correction because it was directly discovered by the no-coaching test and could be repaired without changing the data contract.
+
+The larger product-return idea was **not** added during the release gate. It is recorded as a high-priority post-v1.0 direction. Any future goals should remain optional and user-controlled rather than prescriptive, punitive, or streak-driven. Richer feedback should remain transparent and factual rather than medical, causal, or predictive.
+
+### V10.0.16–V10.0.18 Release Polish
+
+The final release-candidate repairs produced the following behavior:
+
+- Home Training now shows average workout duration across actual Workout days only, while keeping workout-day count and total minutes as secondary context.
+- Home explicitly labels the four cards as period averages and explains that Training averages Workout days only.
+- Whole-number Training averages display naturally, for example `40 min` rather than `40.0 min`.
+- Mood hover uses a lighter amber state, while selected Mood uses the stronger amber state.
+- populated number-input clear controls render as intentional theme-aware × circles in Light and Dark mode rather than gray square artifacts.
+- the daily form now labels sleep as `Previous night's sleep`.
+- Help and the form define sleep as the main sleep period that ended on the selected date.
+- the form recommends logging near the end of the selected day once training and study are mostly finished.
+- Workout-day Perceived Exertion uses a user-facing whole-number 1–10 scale; Rest continues to store the qualified internal 0 invariant.
+- missing Perceived Exertion and out-of-range Perceived Exertion now produce different field-specific errors.
+
+### Final Repair Qualification
+
+Manual screenshot/runtime review confirmed:
+
+- Home averaging language and Training semantics;
+- × controls in Light and Dark modes;
+- Mood hover/selection distinction;
+- previous-night sleep and logging-timing guidance;
+- blank Perceived Exertion → `Perceived Exertion is required.`;
+- invalid Perceived Exertion such as `45` → `Perceived Exertion must be a whole number between 1 and 10.`;
+- invalid exertion does not save the record.
+
+The final technical gate then passed:
+
+- `python -m pytest -q` — PASS, 26 of 26 tests;
+- Python compilation — PASS;
+- `git diff --check` — PASS with exit code 0.
+
+Normal Windows LF→CRLF working-copy warnings were observed but did not represent a failed whitespace gate.
+
+### Result
+
+**Final v1.0 release candidate — LOCALLY QUALIFIED**
+
+**Fresh-eyes usability gate — PASS**
+
+**Known release blockers — 0**
+
+Public documentation and deployment verification are the only remaining release-closure actions. No new feature development is authorized inside the v1.0 release gate.

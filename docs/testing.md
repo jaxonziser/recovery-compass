@@ -838,3 +838,130 @@ functionality or comprehension.
 **Release blockers: 0**
 
 **Final Wednesday UX State — QUALIFIED**
+
+## 2026-09-04 — Final v1.0 Release Gate Qualification
+
+### Opening Internal Gate
+
+The Friday release candidate was requalified before fresh-eyes testing.
+
+```text
+git status
+On branch main
+Your branch is up to date with 'origin/main'.
+nothing to commit, working tree clean
+
+python -m pytest -q
+26 passed
+
+python -m py_compile app.py src\validation.py src\storage.py src\analytics.py src\feedback.py
+PASS
+
+git diff --check
+PASS
+```
+
+A full manual smoke pass also passed, including saved-browser and fresh-browser behavior, daily entry, Rest/Workout logic, duplicate rejection, refresh persistence, browser isolation, backup/restore, empty/sparse/complete states, navigation, onboarding, Help, appearance modes, and previous-period comparison behavior.
+
+**Opening internal gate: PASS**
+
+### Fresh-Eyes External Usability Test
+
+An unfamiliar tester used the application with no coaching.
+
+The required release-gate tasks were completed successfully:
+
+- explain what Recovery Compass does;
+- add a day;
+- find average sleep / seven-day coverage information;
+- find training information;
+- use Help;
+- download a backup;
+- explain where records are stored and how they move to another browser/device.
+
+The tester described the application as easy to use and attractive.
+
+Observed usability issue:
+
+- Home Training showed total weekly workout minutes while the adjacent Sleep, Mood, and Study cards communicated averages. The tester found the mixed aggregation model confusing.
+
+Observed post-v1.0 product suggestion:
+
+- provide more optional value in return for continued record keeping, such as user-defined weekly intentions/goals or richer factual feedback.
+
+**Fresh-eyes usability gate: PASS with one small v1.0 correction and one deferred product-direction note.**
+
+### Release-Polish Qualification
+
+The fresh-eyes correction and final cosmetic/clarity repairs were manually verified.
+
+**PASS — Home period averages**
+
+- Home explicitly identifies the domain cards as period averages.
+- Training shows average workout duration across actual Workout days only.
+- Total training minutes remain visible as supporting context.
+- Integral averages display without unnecessary `.0` formatting.
+
+**PASS — Number-input controls**
+
+- Populated number inputs use an intentional × clear control.
+- The old gray-square artifact is no longer present.
+- The control renders correctly in Light and Dark modes.
+
+**PASS — Mood interaction color**
+
+- Hovering an unselected Mood value uses a lighter amber treatment.
+- A selected Mood value uses the stronger amber state.
+
+**PASS — Sleep/date semantics**
+
+- the field is labeled `Previous night's sleep`;
+- a record uses the main sleep period that ended on the selected date;
+- the form advises logging near the end of the selected day after training and study are mostly finished.
+
+**PASS — Perceived Exertion validation**
+
+- blank Workout-day exertion is rejected with `Perceived Exertion is required.`;
+- values outside the Workout-day 1–10 scale, including `45`, are rejected with `Perceived Exertion must be a whole number between 1 and 10.`;
+- invalid exertion does not save the day;
+- Rest retains the internal 0 exertion invariant.
+
+### Final Automated / Static Gate
+
+After the release-polish repairs:
+
+```text
+python -m pytest -q
+26 passed in 0.09s
+
+python -m py_compile app.py src\validation.py src\storage.py src\analytics.py src\feedback.py
+PASS
+
+git diff --check
+PASS
+
+echo $LASTEXITCODE
+0
+```
+
+Windows emitted normal LF→CRLF working-copy warnings. Because `git diff --check` returned exit code 0, the whitespace gate passed.
+
+### Final Classification
+
+**Automated tests: PASS — 26/26**
+
+**Python compilation: PASS**
+
+**Git whitespace check: PASS**
+
+**Internal smoke regression: PASS**
+
+**Fresh-eyes no-coaching usability test: PASS**
+
+**Release-polish qualification: PASS**
+
+**Known release blockers: 0**
+
+**v1.0 release candidate — LOCALLY QUALIFIED**
+
+Public deployment verification remains pending and must be completed from a clean browser/profile before the release is formally declared public.

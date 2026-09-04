@@ -593,6 +593,19 @@ def _display_number(
     return f"{value:.{decimals}f}"
 
 
+def _valid_workout_exertion(value: object) -> bool:
+    """Return True when a Workout-day exertion value is an integer from 1 to 10."""
+    if value is None:
+        return False
+
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return False
+
+    return 1 <= number <= 10
+
+
 BRAND_SVG = f'<img class="rc-brand-symbol" src="{BRAND_IMAGE_URI}" alt="" aria-hidden="true">'
 
 
@@ -747,7 +760,7 @@ def _quick_tour_visual_html(visual: str) -> str:
                 <div class="rc-tour-mini-section-heading"><b>Four parts of your week</b><span>The same four colors continue throughout the app.</span></div>
                 <div class="rc-domain-grid rc-tour-home-domains">
                     {_domain_card_html('sleep','moon','Sleep','7.6 hr','4 of 7 days recorded',sleep_spark,spark_days)}
-                    {_domain_card_html('training','training','Training','80 min','2 workout days',training_spark,spark_days)}
+                    {_domain_card_html('training','training','Training','40 min','2 workout days · 80 min total',training_spark,spark_days)}
                     {_domain_card_html('mood','mood','Mood','3.8 / 5','4 mood ratings',mood_spark,spark_days)}
                     {_domain_card_html('study','study','Study','2.1 hr','4 of 7 days recorded',study_spark,spark_days)}
                 </div>
@@ -789,11 +802,11 @@ def _quick_tour_visual_html(visual: str) -> str:
                         <div class="rc-tour-choice-row training">{workout_choices}</div>
                         <div class="rc-tour-input-pair">
                             <div><small>Workout minutes</small>{_tour_ui_input('Example: 45', domain='training')}</div>
-                            <div><small>How hard did it feel?</small>{_tour_ui_input('0 to 10', domain='training')}</div>
+                            <div><small>How hard did it feel?</small>{_tour_ui_input('1 to 10', domain='training')}</div>
                         </div>
                         <div class="rc-log-subsection-title rc-tour-rest-title">The rest of your day</div>
                         <div class="rc-tour-daily-three">
-                            <div><div class="rc-domain-field-header"><div class="rc-domain-field-icon sleep">{_icon_svg('moon',14)}</div><div class="rc-domain-field-title">Sleep</div></div>{_tour_ui_input('Example: 7.5', domain='sleep')}</div>
+                            <div><div class="rc-domain-field-header"><div class="rc-domain-field-icon sleep">{_icon_svg('moon',14)}</div><div class="rc-domain-field-title">Sleep</div></div><small>Previous night</small>{_tour_ui_input('Example: 7.5', domain='sleep')}</div>
                             <div><div class="rc-domain-field-header"><div class="rc-domain-field-icon mood">{_icon_svg('mood',14)}</div><div class="rc-domain-field-title">Mood</div></div><div class="rc-tour-mood-grid">{mood_choices}</div></div>
                             <div><div class="rc-domain-field-header"><div class="rc-domain-field-icon study">{_icon_svg('study',14)}</div><div class="rc-domain-field-title">Study</div></div>{_tour_ui_input('Example: 2.0', domain='study')}</div>
                         </div>
@@ -1602,7 +1615,10 @@ def _render_daily_entry() -> None:
         and current_study is not None
         and (
             is_current_rest
-            or (current_duration is not None and current_exertion is not None)
+            or (
+                current_duration is not None
+                and _valid_workout_exertion(current_exertion)
+            )
         )
     )
 
@@ -1724,12 +1740,14 @@ def _render_daily_entry() -> None:
                     st.html('<div class="rc-field-label">How hard did it feel?</div>')
                     perceived_exertion = st.number_input(
                         "How hard did it feel?",
-                        min_value=0,
-                        max_value=10,
                         value=None,
                         step=1,
-                        placeholder="0 to 10",
-                        help="Perceived exertion: 0 means no effort and 10 means maximum perceived effort.",
+                        placeholder="1 to 10",
+                        help=(
+                            "Workout-day perceived exertion uses 1–10: "
+                            "1 means very light effort and 10 means maximum perceived effort. "
+                            "Rest days are stored as 0 automatically."
+                        ),
                         key="recovery_compass_exertion",
                         label_visibility="collapsed",
                     )
@@ -1738,6 +1756,7 @@ def _render_daily_entry() -> None:
                 """
                 <div class="rc-log-subsection-title">The rest of your day</div>
                 <div class="rc-log-subsection-copy">Sleep and study are required. Mood is optional and stays missing if you skip it.</div>
+                <div class="rc-log-timing-note"><strong>Best time to log:</strong> near the end of the selected day, once your training and study are mostly finished. <strong>Sleep</strong> means the main sleep period that ended that morning.</div>
                 """
             )
             # Give the optional Mood control enough horizontal room for a clean 3×2 choice grid.
@@ -1747,7 +1766,7 @@ def _render_daily_entry() -> None:
                 st.html(
                     f'<div class="rc-domain-field-header"><div class="rc-domain-field-icon sleep">{_icon_svg("moon",17)}</div><div class="rc-domain-field-title">Sleep</div></div>'
                 )
-                st.html('<div class="rc-field-label">Sleep hours</div>')
+                st.html("<div class=\"rc-field-label\">Previous night\'s sleep</div>")
                 sleep_hours = st.number_input(
                     "Sleep hours",
                     min_value=0.0,
@@ -1755,7 +1774,7 @@ def _render_daily_entry() -> None:
                     value=None,
                     step=0.1,
                     placeholder="Example: 7.5",
-                    help="Approximate sleep associated with this day.",
+                    help="Hours slept during the main sleep period that ended on this date. For a Sep 4 entry, enter the sleep from Sep 3 night into Sep 4 morning.",
                     key="recovery_compass_sleep",
                     label_visibility="collapsed",
                 )
@@ -1852,7 +1871,13 @@ def _render_daily_entry() -> None:
     preview_ready = (
         sleep_hours is not None
         and study_hours is not None
-        and (is_rest_day or (duration_minutes is not None and perceived_exertion is not None))
+        and (
+            is_rest_day
+            or (
+                duration_minutes is not None
+                and _valid_workout_exertion(perceived_exertion)
+            )
+        )
     )
     ready_copy = (
         "All required fields are present. Check the values once, then save."
@@ -2544,16 +2569,34 @@ if active_page == "Home" and not QUICK_TOUR_ACTIVE:
         mood_value = f"{_display_number(average_mood)} / 5" if average_mood is not None else "No ratings"
         study_value = f"{_display_number(average_study)} hr" if average_study is not None else "—"
         mood_note = f"{mood_entries} mood rating{'' if mood_entries == 1 else 's'}" if mood_entries else "Mood is optional"
+        average_workout_minutes = (
+            training_minutes / workout_days
+            if workout_days > 0
+            else None
+        )
+        training_value = (
+            f"{average_workout_minutes:g} min"
+            if average_workout_minutes is not None
+            else "—"
+        )
         training_note = (
             "No workout days recorded"
             if workout_days == 0
-            else f"{workout_days} workout day" + ("" if workout_days == 1 else "s")
+            else (
+                f"{workout_days} workout day" + ("" if workout_days == 1 else "s")
+                + f" · {training_minutes} min total"
+            )
         )
 
         st.html(
             """
             <div class="rc-section-heading">
-                <div><div class="rc-section-kicker">At a glance</div><div class="rc-section-title">Four parts of your week</div><div class="rc-section-note">The same four colors follow you through Recovery Compass.</div></div>
+                <div>
+                    <div class="rc-section-kicker">At a glance</div>
+                    <div class="rc-section-title">Four parts of your week</div>
+                    <div class="rc-section-note">The same four colors follow you through Recovery Compass.</div>
+                    <div class="rc-average-context"><span>Period averages</span><small>Calculated from recorded values. Training averages Workout days only.</small></div>
+                </div>
             </div>
             """
         )
@@ -2561,7 +2604,7 @@ if active_page == "Home" and not QUICK_TOUR_ACTIVE:
             f"""
             <div class="rc-domain-grid">
                 {_domain_card_html('sleep','moon','Sleep',sleep_value,f'{days_recorded} of 7 days recorded',sleep_spark,spark_days)}
-                {_domain_card_html('training','training','Training',f'{training_minutes} min',training_note,training_spark,spark_days)}
+                {_domain_card_html('training','training','Training',training_value,training_note,training_spark,spark_days)}
                 {_domain_card_html('mood','mood','Mood',mood_value,mood_note,mood_spark,spark_days)}
                 {_domain_card_html('study','study','Study',study_value,f'{days_recorded} of 7 days recorded',study_spark,spark_days)}
             </div>
@@ -3433,13 +3476,13 @@ elif active_page == "Insights":
                             ),
                             y=alt.Y(
                                 "perceived_exertion:Q",
-                                title="Exertion (0–10)",
+                                title="Exertion (1–10)",
                                 scale=alt.Scale(
-                                    domain=[0, 10],
+                                    domain=[1, 10],
                                     padding=18,
                                 ),
                                 axis=alt.Axis(
-                                    values=[0, 2, 4, 6, 8, 10],
+                                    values=[1, 2, 4, 6, 8, 10],
                                     titleColor="#8CA3B4",
                                     labelColor=dark_chart_text,
                                     grid=True,
@@ -3907,7 +3950,9 @@ elif active_page == "Help":
             """
 **Log a Day** is the only place you need for everyday recording. Choose the date, then choose **Rest day** or **Workout day**. Recovery Compass shows only the fields that matter for that day.
 
-**Sleep** and **Study** are required. **Mood** is optional. If you choose **Rest day**, Recovery Compass automatically stores **0 workout minutes** and **0 perceived exertion**, so the record cannot contradict itself.
+For the cleanest daily record, log **near the end of the selected day**, once your training and study are mostly finished. You can also catch up on an earlier date later.
+
+**Sleep** means the main sleep period that **ended on the selected date**. For example, a **September 4** entry uses the sleep from the night of **September 3 into the morning of September 4**. **Study** is required and **Mood** is optional. If you choose **Rest day**, Recovery Compass automatically stores **0 workout minutes** and **0 perceived exertion**, so the record cannot contradict itself.
 
 The live review panel shows what will be saved before you press **Save this day**.
             """
@@ -3935,9 +3980,9 @@ Color never means that a value is medically “good” or “bad.” Labels and 
 
 **Workout Days** — days with a non-Rest workout and more than zero training minutes.
 
-**Training** — total workout minutes from actual workout days in the current period.
+**Training** — Home shows average workout duration across actual workout days. Training Insights also shows total workout minutes for the period.
 
-**Average Sleep** — average sleep from the days that were recorded.
+**Average Sleep** — average of the sleep periods that ended on the recorded dates. On Home, the four domain cards use averages from the values actually recorded; Training averages Workout days only.
 
 **Average Mood** — average of only the mood ratings you entered. Missing mood is never converted to zero.
 
@@ -3958,7 +4003,7 @@ Every Insights chart uses the same seven-day calendar period as Home.
 
 **Training Duration** shows recorded workout minutes. Rest days remain at zero minutes; missing days remain missing.
 
-**Perceived Exertion** is shown for non-Rest entries. Rest days stay blank, while a real exertion value of zero remains visible as zero.
+**Perceived Exertion** uses a 1–10 whole-number scale on Workout days. Rest days are stored as 0 automatically and remain visually distinct from Workout-day exertion.
 
 **Study Hours** leaves unrecorded days as gaps rather than pretending they were zero-hour study days.
             """

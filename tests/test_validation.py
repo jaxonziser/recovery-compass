@@ -21,6 +21,9 @@ def test_valid_record_has_no_errors():
     record = _valid_record()
 
     assert validate_record(record) == []
+    assert (
+        "Perceived Exertion must be a whole number between 1 and 10."
+    ) in validate_record(_valid_record(perceived_exertion="0"))
 
 
 def test_normalize_record_uses_documented_types():
@@ -87,18 +90,23 @@ def test_out_of_range_values_are_rejected():
     )
 
     assert len(errors) == 5
+    assert (
+        "Perceived Exertion must be a whole number between 1 and 10."
+    ) in errors
 
 
 def test_missing_required_values_are_rejected():
     errors = validate_record(
         _valid_record(
             duration_minutes="",
+            perceived_exertion="",
             sleep_hours="",
             study_hours="",
         )
     )
 
-    assert len(errors) >= 3
+    assert len(errors) >= 4
+    assert "Perceived Exertion is required." in errors
 
 def test_rest_record_requires_zero_duration_and_exertion():
     errors = validate_record(
