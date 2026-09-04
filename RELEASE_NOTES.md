@@ -1,7 +1,7 @@
 # Recovery Compass v1.0 Release Notes
 
 **Release date:** September 4, 2026
-**Status:** Release candidate qualified locally; public deployment verification pending.
+**Status:** Public v1.0 release verified on Streamlit Community Cloud.
 
 Recovery Compass v1.0 is the first public-product release of the project. It turns a small daily record of training, previous-night sleep, optional mood, and study time into a calm seven-day overview, focused Insights views, deterministic factual observations, and a portable browser-local data workflow.
 
@@ -101,6 +101,12 @@ PASS
 
 Known release blockers
 0
+
+Public deployment smoke test
+PASS
+
+Live app
+https://recovery-compass.streamlit.app
 ```
 
-The public deployment itself must still be opened from a clean browser/profile and rechecked before the v1.0 release is formally declared public.
+The public deployment was opened in a clean browser/profile and passed the release smoke test. The verified live app is https://recovery-compass.streamlit.app.

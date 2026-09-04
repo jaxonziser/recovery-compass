@@ -525,3 +525,10 @@ The creator personally:
 - remained responsible for final product acceptance and public-release decisions.
 
 No claim is made that the final release-candidate implementation or documentation was independently written without AI assistance. AI assistance is documented so the repository distinguishes generated/drafted technical help from the creator's product decisions, testing, verification, and acceptance work.
+
+
+## 2026-09-04 — Public Deployment and Release Closure
+
+AI assistance was used to guide the final Streamlit Community Cloud deployment sequence, define the clean-browser smoke-test checklist, interpret the deployment result, and prepare the final release-status documentation.
+
+The creator personally connected the repository, configured and launched the deployment, opened the public app, performed the deployment smoke test, confirmed the release-critical behaviors, and accepted the public v1.0 release.

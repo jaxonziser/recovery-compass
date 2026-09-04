@@ -6,7 +6,7 @@
 
 The product is deliberately designed around factual self-tracking rather than medical judgment, gamification pressure, or a proprietary recovery score.
 
-**Release status:** v1.0 release candidate. Internal qualification and fresh-eyes usability testing are complete. Public deployment verification is the remaining release step.
+**Release status:** v1.0 publicly released and deployment-verified on September 4, 2026.
 
 ## For Portfolio / Admissions Reviewers
 
@@ -14,7 +14,7 @@ Recovery Compass is a **student-built, AI-assisted software product developed fr
 
 For a quick review of the project:
 
-- **Try the product:** the public URL will be added here after deployment and clean-browser verification.
+- **Try the product:** https://recovery-compass.streamlit.app
 - **See what was built and how it works:** continue through this README.
 - **See how the product evolved:** [`docs/engineering-journal.md`](docs/engineering-journal.md).
 - **See how it was tested:** [`docs/testing.md`](docs/testing.md).
@@ -142,7 +142,7 @@ The app normally becomes available at `http://localhost:8501`.
 
 ## Qualification Commands
 
-The v1.0 release candidate is checked with:
+The v1.0 release was checked with:
 
 ```powershell
 python -m pytest -q
@@ -150,7 +150,7 @@ python -m py_compile app.py src\validation.py src\storage.py src\analytics.py sr
 git diff --check
 ```
 
-Final local release qualification on September 4, 2026 produced:
+Final local and deployed release qualification on September 4, 2026 produced:
 
 ```text
 26 passed
@@ -159,6 +159,8 @@ git diff --check: PASS (exit code 0)
 Internal smoke regression: PASS
 Fresh-eyes usability test: PASS
 Known release blockers: 0
+Public deployment smoke test: PASS
+Live app: https://recovery-compass.streamlit.app
 ```
 
 Normal Git LF/CRLF working-copy warnings on Windows are not a failed whitespace check when `git diff --check` returns exit code `0`.

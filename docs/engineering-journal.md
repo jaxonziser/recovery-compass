@@ -1561,3 +1561,16 @@ Normal Windows LF→CRLF working-copy warnings were observed but did not represe
 **Known release blockers — 0**
 
 Public documentation and deployment verification are the only remaining release-closure actions. No new feature development is authorized inside the v1.0 release gate.
+
+
+## 2026-09-04 — Public v1.0 Deployment and Release Qualification
+
+Recovery Compass v1.0 was deployed from the qualified `main` branch to Streamlit Community Cloud at:
+
+`https://recovery-compass.streamlit.app`
+
+The deployed application was then opened in a fresh browser context and checked against the release-critical workflow. The public build loaded successfully, showed the first-run guided tour, started without leaked development/test records, supported the qualified appearance modes, accepted and persisted a synthetic Workout record, updated Home and Insights, retained the record after refresh, exposed the documented previous-night sleep guidance, downloaded a CSV backup, and preserved the qualified Perceived Exertion validation behavior. No personal data, secret, traceback, or release-blocking layout defect was observed.
+
+The public deployment therefore matched the locally qualified release candidate closely enough to promote v1.0 from release candidate to public release.
+
+**Status: PUBLIC v1.0 RELEASE — QUALIFIED**

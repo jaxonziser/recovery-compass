@@ -965,3 +965,38 @@ Windows emitted normal LF→CRLF working-copy warnings. Because `git diff --chec
 **v1.0 release candidate — LOCALLY QUALIFIED**
 
 Public deployment verification remains pending and must be completed from a clean browser/profile before the release is formally declared public.
+
+
+## 2026-09-04 — Public Deployment Smoke Qualification
+
+**Deployment URL:** `https://recovery-compass.streamlit.app`
+
+The public Streamlit deployment was opened from a fresh browser context after the release-candidate commit was pushed to `main`.
+
+PASS — application loaded from the public Streamlit domain.
+
+PASS — first-run Guided Tour appeared.
+
+PASS — no development or personal records were present at first launch.
+
+PASS — Light, System, and Dark appearance modes remained usable.
+
+PASS — a synthetic Workout record could be saved.
+
+PASS — Home and Insights reflected the saved record.
+
+PASS — browser-local persistence survived page refresh.
+
+PASS — Help retained the previous-night sleep explanation.
+
+PASS — Data & Backup produced a CSV backup.
+
+PASS — Perceived Exertion retained the qualified 1–10 validation behavior.
+
+PASS — no traceback, secret, personal data, or release-blocking visual defect was observed.
+
+**Public deployment smoke test: PASS**
+
+**Known release blockers: 0**
+
+**Recovery Compass v1.0: PUBLICLY RELEASED AND QUALIFIED**
